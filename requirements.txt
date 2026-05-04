@@ -13,3 +13,4 @@ aiofiles
 websockets
 httpx
 cryptography
+python-dotenv
