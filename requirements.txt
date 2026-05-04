@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+pandas
+python-multipart
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt
+Pillow
+tqdm
+email-validator
+pydantic[email]
+aiofiles
+websockets
+httpx
+cryptography
