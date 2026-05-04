@@ -1075,7 +1075,7 @@
                                     <thead>
                                         <tr><th data-sort="id" data-i18n="colID">ID</th><th data-sort="Code" data-i18n="colCode">Код</th><th data-sort="QTY" data-i18n="colQty">Количество</th><th data-sort="NAME" data-i18n="colName">Название</th><th data-sort="Brand" data-i18n="colBrand">Бренд</th><th data-sort="Model" data-i18n="colModel">Модель</th><th data-sort="PLACE" data-i18n="colPlace">Место</th><th data-sort="Price" data-i18n="colPrice">Цена</th><th data-sort="Conditions" data-i18n="colCondition">Состояние</th><th data-sort="Truck_models" data-i18n="colTruckModels">Модели авто</th><th data-sort="Publishing_date" data-i18n="colDate">Дата</th><th data-sort="Description" data-i18n="colDesc">Описание</th><th data-i18n="colPhoto">Фото</th><th data-i18n="colActions">Действия</th></tr>
                                     </thead>
-                                    <tbody id="unpublishedBody"><tr><td colspan="14" class="text-center" data-i18n="loading">Загрузка...<\ /td></tr></tbody>
+                                    <tbody id="unpublishedBody"><tr><td colspan="14" class="text-center" data-i18n="loading">Загрузка...</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -1089,11 +1089,8 @@
                                     <thead>
                                         <tr><th data-sort="id" data-i18n="colID">ID</th><th data-sort="Code" data-i18n="colCode">Код</th><th data-sort="QTY" data-i18n="colQty">Количество</th><th data-sort="NAME" data-i18n="colName">Название</th><th data-sort="Price" data-i18n="colPrice">Цена</th><th data-sort="sales_negotiation_start_date" data-i18n="colStartDate">Дата начала</th><th data-sort="Description" data-i18n="colDesc">Описание</th><th data-i18n="colPhoto">Фото</th><th data-i18n="colActions">Действия</th></tr>
                                     </thead>
-                                    <tbody id="bufferBody">
-                                </table><td colspan="9" class="text-center" data-i18n="loading">
-                                    Загрузка...<\ /td>
-                                        </tr></tbody>
-                                        </table>
+                                    <tbody id="bufferBody"><tr><td colspan="9" class="text-center" data-i18n="loading">Загрузка...</td></tr></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -1106,7 +1103,7 @@
                                     <thead>
                                         <tr><th data-sort="id" data-i18n="colID">ID</th><th data-sort="Code" data-i18n="colCode">Код</th><th data-sort="QTY" data-i18n="colQty">Количество</th><th data-sort="NAME" data-i18n="colName">Название</th><th data-sort="Price" data-i18n="colPrice">Цена</th><th data-sort="sales_negotiation_start_date" data-i18n="colStartDate">Дата начала</th><th data-sort="sales_negotiation_end_date" data-i18n="colEndDate">Дата завершения</th><th data-sort="Description" data-i18n="colDesc">Описание</th><th data-i18n="colPhoto">Фото</th></tr>
                                     </thead>
-                                    <tbody id="historyBody"><tr><td colspan="9" class="text-center" data-i18n="loading">Загрузка...<\ /td></tr></tbody>
+                                    <tbody id="historyBody"><tr><td colspan="9" class="text-center" data-i18n="loading">Загрузка...</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -1206,74 +1203,59 @@
         const translations = {
             ru: {
                 adminTitle: 'Админ панель управления данными', logoutBtn: 'Выйти', filtersTitle: 'Фильтры товаров',
-                filterCodeLabel: 'Код товара', filterCodePlaceholder: 'Введите код',
-                filterNameLabel: 'Название', filterNamePlaceholder: 'Название товара',
-                filterBrandLabel: 'Бренд', filterBrandPlaceholder: 'Бренд',
-                filterModelLabel: 'Модель', filterModelPlaceholder: 'Модель',
-                filterPlaceLabel: 'Место', filterPlacePlaceholder: 'Место',
-                filterQtyMinLabel: 'Количество от', filterQtyMinPlaceholder: 'мин',
-                filterQtyMaxLabel: 'Количество до', filterQtyMaxPlaceholder: 'макс',
-                filterPriceMinLabel: 'Цена от', filterPriceMinPlaceholder: 'мин',
-                filterPriceMaxLabel: 'Цена до', filterPriceMaxPlaceholder: 'макс',
-                filterConditionLabel: 'Состояние', filterConditionPlaceholder: 'Состояние товара',
-                filterDateFromLabel: 'Дата от', filterDateToLabel: 'Дата до',
-                applyBtn: 'Применить', resetBtn: 'Сбросить',
+                filterCodeLabel: 'Код товара', filterCodePlaceholder: 'Введите код', filterNameLabel: 'Название', filterNamePlaceholder: 'Название товара',
+                filterBrandLabel: 'Бренд', filterBrandPlaceholder: 'Бренд', filterModelLabel: 'Модель', filterModelPlaceholder: 'Модель',
+                filterPlaceLabel: 'Место', filterPlacePlaceholder: 'Место', filterQtyMinLabel: 'Количество от', filterQtyMinPlaceholder: 'мин',
+                filterQtyMaxLabel: 'Количество до', filterQtyMaxPlaceholder: 'макс', filterPriceMinLabel: 'Цена от', filterPriceMinPlaceholder: 'мин',
+                filterPriceMaxLabel: 'Цена до', filterPriceMaxPlaceholder: 'макс', filterConditionLabel: 'Состояние', filterConditionPlaceholder: 'Состояние товара',
+                filterDateFromLabel: 'Дата от', filterDateToLabel: 'Дата до', applyBtn: 'Применить', resetBtn: 'Сбросить',
                 tabPublished: 'Опубликованные', tabUnpublished: 'Неопубликованные', tabBuffer: 'Буфер продаж', tabHistory: 'История продаж', tabUpload: 'Загрузка',
                 colID: 'ID', colCode: 'Код', colQty: 'Количество', colName: 'Название', colBrand: 'Бренд', colModel: 'Модель', colPlace: 'Место', colPrice: 'Цена', colCondition: 'Состояние', colTruckModels: 'Модели авто', colDate: 'Дата', colDesc: 'Описание', colPhoto: 'Фото', colActions: 'Действия',
-                unpublishedTitle: 'Неопубликованные товары', addNewBtn: '+ Добавить новый товар',
-                bufferTitle: 'Активные переговоры', historyTitle: 'История продаж',
+                unpublishedTitle: 'Неопубликованные товары', addNewBtn: '+ Добавить новый товар', bufferTitle: 'Активные переговоры', historyTitle: 'История продаж',
                 uploadTitle: 'Загрузка файла данных', uploadDesc: 'Поддерживаемые форматы: .xlsx, .db. Перетащите файл сюда или нажмите кнопку ниже.',
-                chooseFileBtn: 'Выбрать файл', noFileText: 'Файл не выбран', uploadBtn: 'Загрузить',
-                progressStatus: 'Статус обработки:', loading: 'Загрузка...',
+                chooseFileBtn: 'Выбрать файл', noFileText: 'Файл не выбран', uploadBtn: 'Загрузить', progressStatus: 'Статус обработки:', loading: 'Загрузка...',
                 addItemTitle: 'Добавить новый товар', addCode: 'Код', addCodePlaceholder: 'Код товара', addQty: 'Количество', addName: 'Название', addNamePlaceholder: 'Название товара', addBrand: 'Бренд', addBrandPlaceholder: 'Бренд', addModel: 'Модель', addModelPlaceholder: 'Модель', addPlace: 'Место', addPlacePlaceholder: 'Место', addPrice: 'Цена', addCondition: 'Состояние', addConditionPlaceholder: 'Состояние', addTruckModels: 'Модели авто', addTruckModelsPlaceholder: 'Модели авто (через запятую)', addDesc: 'Описание', addDescPlaceholder: 'Краткое описание',
-                negotiateTitle: 'Начать переговоры', negotiateDesc: 'Введите количество для продажи:',
-                confirmTitle: 'Подтверждение', confirmBtn: 'Подтвердить', cancelBtn: 'Отмена', saveBtn: 'Сохранить',
-                editLabel: 'Изменение:', editPlaceholder: 'Введите новое значение...',
-                loginTitle: 'Вход в админ панель', loginUsername: 'Email или Username', loginPassword: 'Пароль', loginBtn: 'Войти',
+                negotiateTitle: 'Начать переговоры', negotiateDesc: 'Введите количество для продажи:', confirmTitle: 'Подтверждение', confirmBtn: 'Подтвердить', cancelBtn: 'Отмена', saveBtn: 'Сохранить',
+                editLabel: 'Изменение:', editPlaceholder: 'Введите новое значение...', loginTitle: 'Вход в админ панель', loginUsername: 'Email или Username', loginPassword: 'Пароль', loginBtn: 'Войти',
                 uploadConfirmTitle: 'Подтверждение загрузки', uploadConfirmMsg: 'Вы уверены, что хотите загрузить этот файл?', fileNameLabel: 'Название файла:', fileSizeLabel: 'Размер:', fileTypeLabel: 'Тип:', uploadWarning: 'Внимание! Загрузка нового файла приведет к обновлению данных.',
                 actionPublish: 'Опубликовать', actionDelete: 'Удалить', actionDraft: 'В черновик', actionNegotiate: 'Переговоры', actionComplete: 'Завершить', actionCancel: 'Отменить',
-                noData: 'Нет данных', noBuffer: 'Нет активных переговоров', noHistory: 'Нет истории',
-                deleteConfirmMsg: 'Вы удаляете товар', moveConfirmMsg: 'Переместить товар', moveTargetPub: 'опубликованные', moveTargetUnpub: 'неопубликованные', endNegotiateConfirm: 'Завершить переговоры для товара', cancelNegotiateConfirm: 'Отменить транзакцию для',
+                noData: 'Нет данных', noBuffer: 'Нет активных переговоров', noHistory: 'Нет истории', deleteConfirmMsg: 'Вы удаляете товар', moveConfirmMsg: 'Переместить товар', moveTargetPub: 'опубликованные', moveTargetUnpub: 'неопубликованные', endNegotiateConfirm: 'Завершить переговоры для товара', cancelNegotiateConfirm: 'Отменить транзакцию для',
                 successUpdate: 'Обновлено', successMove: 'Перемещено', successDelete: 'Товар удален. Ctrl+Z для отмены', successNegotiationStart: 'Переговоры начаты', successNegotiationEnd: 'Переговоры завершены', successCancel: 'Транзакция отменена', successAdd: 'Товар успешно добавлен', successUpload: 'Файл успешно загружен и обработан. Страница будет обновлена...',
                 errorLoad: 'Ошибка загрузки', errorConnection: 'Ошибка подключения', errorAdd: 'Заполните обязательные поля: Код и Название', errorInvalidQty: 'Введите корректное количество', errorDeleteLate: 'Слишком поздно для отмены', noUndo: 'Нет действий для отката (Ctrl+Z)', noRedo: 'Нет действий для повтора (Ctrl+Y)'
             },
             en: {
                 adminTitle: 'Admin Data Management Panel', logoutBtn: 'Logout', filtersTitle: 'Product Filters',
-                filterCodeLabel: 'Product Code', filterCodePlaceholder: 'Enter code',
-                filterNameLabel: 'Name', filterNamePlaceholder: 'Product name',
-                filterBrandLabel: 'Brand', filterBrandPlaceholder: 'Brand',
-                filterModelLabel: 'Model', filterModelPlaceholder: 'Model',
-                filterPlaceLabel: 'Location', filterPlacePlaceholder: 'Location',
-                filterQtyMinLabel: 'Qty from', filterQtyMinPlaceholder: 'min',
-                filterQtyMaxLabel: 'Qty to', filterQtyMaxPlaceholder: 'max',
-                filterPriceMinLabel: 'Price from', filterPriceMinPlaceholder: 'min',
-                filterPriceMaxLabel: 'Price to', filterPriceMaxPlaceholder: 'max',
-                filterConditionLabel: 'Condition', filterConditionPlaceholder: 'Condition',
-                filterDateFromLabel: 'Date from', filterDateToLabel: 'Date to',
-                applyBtn: 'Apply', resetBtn: 'Reset',
+                filterCodeLabel: 'Product Code', filterCodePlaceholder: 'Enter code', filterNameLabel: 'Name', filterNamePlaceholder: 'Product name',
+                filterBrandLabel: 'Brand', filterBrandPlaceholder: 'Brand', filterModelLabel: 'Model', filterModelPlaceholder: 'Model',
+                filterPlaceLabel: 'Location', filterPlacePlaceholder: 'Location', filterQtyMinLabel: 'Qty from', filterQtyMinPlaceholder: 'min',
+                filterQtyMaxLabel: 'Qty to', filterQtyMaxPlaceholder: 'max', filterPriceMinLabel: 'Price from', filterPriceMinPlaceholder: 'min',
+                filterPriceMaxLabel: 'Price to', filterPriceMaxPlaceholder: 'max', filterConditionLabel: 'Condition', filterConditionPlaceholder: 'Condition',
+                filterDateFromLabel: 'Date from', filterDateToLabel: 'Date to', applyBtn: 'Apply', resetBtn: 'Reset',
                 tabPublished: 'Published', tabUnpublished: 'Unpublished', tabBuffer: 'Sales Buffer', tabHistory: 'Sales History', tabUpload: 'Upload',
                 colID: 'ID', colCode: 'Code', colQty: 'Qty', colName: 'Name', colBrand: 'Brand', colModel: 'Model', colPlace: 'Location', colPrice: 'Price', colCondition: 'Condition', colTruckModels: 'Vehicle models', colDate: 'Date', colDesc: 'Description', colPhoto: 'Photo', colActions: 'Actions',
-                unpublishedTitle: 'Unpublished Items', addNewBtn: '+ Add new item',
-                bufferTitle: 'Active negotiations', historyTitle: 'Sales History',
+                unpublishedTitle: 'Unpublished Items', addNewBtn: '+ Add new item', bufferTitle: 'Active negotiations', historyTitle: 'Sales History',
                 uploadTitle: 'Upload Data File', uploadDesc: 'Supported formats: .xlsx, .db. Drag & drop or click below.',
-                chooseFileBtn: 'Choose file', noFileText: 'No file chosen', uploadBtn: 'Upload',
-                progressStatus: 'Processing status:', loading: 'Loading...',
+                chooseFileBtn: 'Choose file', noFileText: 'No file chosen', uploadBtn: 'Upload', progressStatus: 'Processing status:', loading: 'Loading...',
                 addItemTitle: 'Add New Item', addCode: 'Code', addCodePlaceholder: 'Product code', addQty: 'Qty', addName: 'Name', addNamePlaceholder: 'Product name', addBrand: 'Brand', addBrandPlaceholder: 'Brand', addModel: 'Model', addModelPlaceholder: 'Model', addPlace: 'Location', addPlacePlaceholder: 'Location', addPrice: 'Price', addCondition: 'Condition', addConditionPlaceholder: 'Condition', addTruckModels: 'Vehicle models', addTruckModelsPlaceholder: 'Vehicle models (comma separated)', addDesc: 'Description', addDescPlaceholder: 'Short description',
-                negotiateTitle: 'Start negotiation', negotiateDesc: 'Enter quantity to sell:',
-                confirmTitle: 'Confirmation', confirmBtn: 'Confirm', cancelBtn: 'Cancel', saveBtn: 'Save',
-                editLabel: 'Edit:', editPlaceholder: 'Enter new value...',
-                loginTitle: 'Admin Login', loginUsername: 'Email or Username', loginPassword: 'Password', loginBtn: 'Login',
+                negotiateTitle: 'Start negotiation', negotiateDesc: 'Enter quantity to sell:', confirmTitle: 'Confirmation', confirmBtn: 'Confirm', cancelBtn: 'Cancel', saveBtn: 'Save',
+                editLabel: 'Edit:', editPlaceholder: 'Enter new value...', loginTitle: 'Admin Login', loginUsername: 'Email or Username', loginPassword: 'Password', loginBtn: 'Login',
                 uploadConfirmTitle: 'Confirm Upload', uploadConfirmMsg: 'Are you sure you want to upload this file?', fileNameLabel: 'File name:', fileSizeLabel: 'Size:', fileTypeLabel: 'Type:', uploadWarning: 'Warning! Uploading a new file will update all data.',
                 actionPublish: 'Publish', actionDelete: 'Delete', actionDraft: 'Move to draft', actionNegotiate: 'Negotiate', actionComplete: 'Complete', actionCancel: 'Cancel',
-                noData: 'No data', noBuffer: 'No active negotiations', noHistory: 'No history',
-                deleteConfirmMsg: 'You are deleting item', moveConfirmMsg: 'Move item', moveTargetPub: 'published', moveTargetUnpub: 'unpublished', endNegotiateConfirm: 'Complete negotiation for item', cancelNegotiateConfirm: 'Cancel transaction for',
+                noData: 'No data', noBuffer: 'No active negotiations', noHistory: 'No history', deleteConfirmMsg: 'You are deleting item', moveConfirmMsg: 'Move item', moveTargetPub: 'published', moveTargetUnpub: 'unpublished', endNegotiateConfirm: 'Complete negotiation for item', cancelNegotiateConfirm: 'Cancel transaction for',
                 successUpdate: 'Updated', successMove: 'Moved', successDelete: 'Item deleted. Ctrl+Z to undo', successNegotiationStart: 'Negotiation started', successNegotiationEnd: 'Negotiation completed', successCancel: 'Transaction cancelled', successAdd: 'Item added successfully', successUpload: 'File uploaded and processed. Page will refresh...',
                 errorLoad: 'Error loading data', errorConnection: 'Connection error', errorAdd: 'Please fill required fields: Code and Name', errorInvalidQty: 'Enter a valid quantity', errorDeleteLate: 'Too late to undo', noUndo: 'Nothing to undo (Ctrl+Z)', noRedo: 'Nothing to redo (Ctrl+Y)'
             }
         };
+
         let currentLang = localStorage.getItem('appLang') || 'ru';
-        function t(key) { return translations[currentLang] && translations[currentLang][key] !== undefined ? translations[currentLang][key] : key; }
-        function updateStaticTexts() {
+        
+        function t(key) { 
+            return translations[currentLang] && translations[currentLang][key] !== undefined ? translations[currentLang][key] : key; 
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('appLang', lang);
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (key && translations[currentLang][key]) {
@@ -1287,11 +1269,6 @@
             });
             document.documentElement.lang = currentLang === 'ru' ? 'ru' : 'en';
             document.querySelectorAll('.lang-option').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === currentLang));
-        }
-        function setLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('appLang', lang);
-            updateStaticTexts();
             loadData(); loadUnpublished(); loadBufferSales(); loadSalesHistory();
             if (currentTab === 'data') loadData();
             else if (currentTab === 'unpublished') filterAndRenderUnpublished();
@@ -1299,10 +1276,9 @@
             else if (currentTab === 'history') filterAndRenderHistory();
         }
 
-        function getClientTime() { return new Date().toISOString(); }
         async function fetchWithTime(url, options = {}) {
             const headers = new Headers(options.headers || {});
-            headers.set('X-Client-Time', getClientTime());
+            headers.set('X-Client-Time', new Date().toISOString());
             options.headers = headers;
             return fetch(url, options);
         }
@@ -1463,15 +1439,18 @@
             const cancelHandler = () => { modal.classList.remove('active'); modalConfirmBtn.removeEventListener('click', confirmHandler); modalCancelBtn.removeEventListener('click', cancelHandler); };
             modalConfirmBtn.addEventListener('click', confirmHandler); modalCancelBtn.addEventListener('click', cancelHandler);
         }
+
         modal.addEventListener('click', function (e) { if (e.target === modal) modal.classList.remove('active'); });
 
         function showAlert(msg, type) {
             const alertDiv = document.createElement('div'); alertDiv.className = 'alert alert-' + type; alertDiv.textContent = msg; document.body.appendChild(alertDiv); setTimeout(() => alertDiv.remove(), 3000);
         }
+
         function resetAllFilters() {
             ['filterCode', 'filterName', 'filterBrand', 'filterModel', 'filterPlace', 'filterQtyMin', 'filterQtyMax', 'filterPriceMin', 'filterPriceMax', 'filterCondition', 'filterDateFrom', 'filterDateTo'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
             currentFilters = {}; currentPage = 1; loadData(); filterAndRenderUnpublished(); filterAndRenderBuffer(); filterAndRenderHistory();
         }
+
         function confirmUploadDialog() {
             const f = document.getElementById('uploadFile').files[0];
             if (f) { document.getElementById('uploadConfirmModal').classList.add('active'); document.getElementById('confirmFileName').textContent = f.name; document.getElementById('confirmFileSize').textContent = f.size === 0 ? '0 Bytes' : parseFloat((f.size / Math.pow(1024, Math.floor(Math.log(f.size) / Math.log(1024)))).toFixed(2)) + ' ' + ['Bytes', 'KB', 'MB', 'GB'][Math.floor(Math.log(f.size) / Math.log(1024))]; document.getElementById('confirmFileType').textContent = f.type || 'application/octet-stream'; pendingUploadFile = f; }
@@ -1491,55 +1470,26 @@
             if (token) { ws = new WebSocket(API_BASE.replace('http', 'ws') + '/ws/progress?token=' + token); ws.onmessage = (e) => { const data = JSON.parse(e.data); const c = document.getElementById('progressContainer'), f = document.getElementById('progressFill'), m = document.getElementById('progressMessage'); if (f) { f.style.width = data.progress + '%'; f.textContent = data.progress + '%'; } if (m) m.textContent = data.message || 'Обробка...'; if (data.status === 'completed') { showAlert(t('successUpload'), 'success'); loadData(); loadUnpublished(); loadBufferSales(); loadSalesHistory(); setTimeout(() => { if (c) c.style.display = 'none'; }, 2000); } else if (data.status === 'error') { showAlert(t('errorLoad'), 'error'); setTimeout(() => { if (c) c.style.display = 'none'; }, 2000); } }; }
             ['filterCode', 'filterName', 'filterBrand', 'filterModel', 'filterPlace', 'filterQtyMin', 'filterQtyMax', 'filterPriceMin', 'filterPriceMax', 'filterCondition', 'filterDateFrom', 'filterDateTo'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); applyFilters(); } }); });
             const tabs = document.querySelectorAll('.nav-tab'); tabs.forEach(tab => { tab.addEventListener('click', function (e) { const tabName = this.getAttribute('data-tab'); document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.getElementById(tabName + 'Tab').classList.add('active'); tabs.forEach(b => b.classList.remove('active')); this.classList.add('active'); currentTab = tabName; }); });
-            document.querySelectorAll('#dataTable th[data-sort]').forEach(th => th.addEventListener('click', function () {
-                const column = this.getAttribute('data-sort');
-                if (sortState.published.column === column) sortState.published.order = sortState.published.order === 'asc' ? 'desc' : 'asc'; else { sortState.published.column = column; sortState.published.order = 'asc'; }
-                currentFilters.sort_by = column; currentFilters.sort_order = sortState.published.order;
-                const table = document.getElementById('dataTable');
-                if (table) table.querySelectorAll('th').forEach(th => { th.classList.remove('sorted-asc', 'sorted-desc'); if (th.getAttribute('data-sort') === sortState.published.column) th.classList.add(sortState.published.order === 'asc' ? 'sorted-asc' : 'sorted-desc'); });
-                loadData();
-            }));
-            document.querySelectorAll('#unpublishedTable th[data-sort]').forEach(th => th.addEventListener('click', function () {
-                const column = this.getAttribute('data-sort');
-                if (sortState.unpublished.column === column) sortState.unpublished.order = sortState.unpublished.order === 'asc' ? 'desc' : 'asc'; else { sortState.unpublished.column = column; sortState.unpublished.order = 'asc'; }
-                const table = document.getElementById('unpublishedTable');
-                if (table) table.querySelectorAll('th').forEach(th => { th.classList.remove('sorted-asc', 'sorted-desc'); if (th.getAttribute('data-sort') === sortState.unpublished.column) th.classList.add(sortState.unpublished.order === 'asc' ? 'sorted-asc' : 'sorted-desc'); });
-                filterAndRenderUnpublished();
-            }));
-            document.querySelectorAll('#bufferTable th[data-sort]').forEach(th => th.addEventListener('click', function () {
-                const column = this.getAttribute('data-sort');
-                if (sortState.buffer.column === column) sortState.buffer.order = sortState.buffer.order === 'asc' ? 'desc' : 'asc'; else { sortState.buffer.column = column; sortState.buffer.order = 'asc'; }
-                const table = document.getElementById('bufferTable');
-                if (table) table.querySelectorAll('th').forEach(th => { th.classList.remove('sorted-asc', 'sorted-desc'); if (th.getAttribute('data-sort') === sortState.buffer.column) th.classList.add(sortState.buffer.order === 'asc' ? 'sorted-asc' : 'sorted-desc'); });
-                filterAndRenderBuffer();
-            }));
-            document.querySelectorAll('#historyTable th[data-sort]').forEach(th => th.addEventListener('click', function () {
-                const column = this.getAttribute('data-sort');
-                if (sortState.history.column === column) sortState.history.order = sortState.history.order === 'asc' ? 'desc' : 'asc'; else { sortState.history.column = column; sortState.history.order = 'asc'; }
-                const table = document.getElementById('historyTable');
-                if (table) table.querySelectorAll('th').forEach(th => { th.classList.remove('sorted-asc', 'sorted-desc'); if (th.getAttribute('data-sort') === sortState.history.column) th.classList.add(sortState.history.order === 'asc' ? 'sorted-asc' : 'sorted-desc'); });
-                filterAndRenderHistory();
-            }));
+            document.querySelectorAll('#dataTable th[data-sort]').forEach(th => th.addEventListener('click', function () { const column = this.getAttribute('data-sort'); if (sortState.published.column === column) sortState.published.order = sortState.published.order === 'asc' ? 'desc' : 'asc'; else { sortState.published.column = column; sortState.published.order = 'asc'; } currentFilters.sort_by = column; currentFilters.sort_order = sortState.published.order; const table = document.getElementById('dataTable'); if (table) table.querySelectorAll('th').forEach(th => { th.classList.remove('sorted-asc', 'sorted-desc'); if (th.getAttribute('data-sort') === sortState.published.column) th.classList.add(sortState.published.order === 'asc' ? 'sorted-asc' : 'sorted-desc'); }); loadData(); }));
+            document.querySelectorAll('#unpublishedTable th[data-sort]').forEach(th => th.addEventListener('click', function () { const column = this.getAttribute('data-sort'); if (sortState.unpublished.column === column) sortState.unpublished.order = sortState.unpublished.order === 'asc' ? 'desc' : 'asc'; else { sortState.unpublished.column = column; sortState.unpublished.order = 'asc'; } const table = document.getElementById('unpublishedTable'); if (table) table.querySelectorAll('th').forEach(th => { th.classList.remove('sorted-asc', 'sorted-desc'); if (th.getAttribute('data-sort') === sortState.unpublished.column) th.classList.add(sortState.unpublished.order === 'asc' ? 'sorted-asc' : 'sorted-desc'); }); filterAndRenderUnpublished(); }));
+            document.querySelectorAll('#bufferTable th[data-sort]').forEach(th => th.addEventListener('click', function () { const column = this.getAttribute('data-sort'); if (sortState.buffer.column === column) sortState.buffer.order = sortState.buffer.order === 'asc' ? 'desc' : 'asc'; else { sortState.buffer.column = column; sortState.buffer.order = 'asc'; } const table = document.getElementById('bufferTable'); if (table) table.querySelectorAll('th').forEach(th => { th.classList.remove('sorted-asc', 'sorted-desc'); if (th.getAttribute('data-sort') === sortState.buffer.column) th.classList.add(sortState.buffer.order === 'asc' ? 'sorted-asc' : 'sorted-desc'); }); filterAndRenderBuffer(); }));
+            document.querySelectorAll('#historyTable th[data-sort]').forEach(th => th.addEventListener('click', function () { const column = this.getAttribute('data-sort'); if (sortState.history.column === column) sortState.history.order = sortState.history.order === 'asc' ? 'desc' : 'asc'; else { sortState.history.column = column; sortState.history.order = 'asc'; } const table = document.getElementById('historyTable'); if (table) table.querySelectorAll('th').forEach(th => { th.classList.remove('sorted-asc', 'sorted-desc'); if (th.getAttribute('data-sort') === sortState.history.column) th.classList.add(sortState.history.order === 'asc' ? 'sorted-asc' : 'sorted-desc'); }); filterAndRenderHistory(); }));
             editOverlay = document.getElementById('editOverlay'); editPopup = document.getElementById('editPopup'); editInput = document.getElementById('editInput'); editColumnNameLabel = document.getElementById('editColumnName');
             editInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); saveEdit(); } else if (e.key === 'Escape') { e.preventDefault(); cancelEdit(); } });
-            document.getElementById('photoUploadInput').addEventListener('change', async function () {
-                if (!this.files || !this.files[0] || !photoUploadRecordId) return;
-                const formData = new FormData(); formData.append('record_id', photoUploadRecordId); formData.append('file', this.files[0]);
-                try {
-                    const resp = await fetchWithTime(API_BASE + '/admin/table/update-photo', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: formData });
-                    if (resp.ok) { showAlert(t('successUpdate'), 'success'); await loadData(); await loadUnpublished(); await loadBufferSales(); await loadSalesHistory(); }
-                    else { const err = await resp.json(); showAlert(err.detail || t('errorLoad'), 'error'); }
-                } catch (e) { showAlert(t('errorConnection'), 'error'); } finally { this.value = ''; photoUploadRecordId = null; }
-            });
+            document.getElementById('photoUploadInput').addEventListener('change', async function () { if (!this.files || !this.files[0] || !photoUploadRecordId) return; const formData = new FormData(); formData.append('record_id', photoUploadRecordId); formData.append('file', this.files[0]); try { const resp = await fetchWithTime(API_BASE + '/admin/table/update-photo', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: formData }); if (resp.ok) { showAlert(t('successUpdate'), 'success'); await loadData(); await loadUnpublished(); await loadBufferSales(); await loadSalesHistory(); } else { const err = await resp.json(); showAlert(err.detail || t('errorLoad'), 'error'); } } catch (e) { showAlert(t('errorConnection'), 'error'); } finally { this.value = ''; photoUploadRecordId = null; } });
             negotiateModalEl.addEventListener('click', function (e) { if (e.target === negotiateModalEl) { document.getElementById('negotiateModal').classList.remove('active'); negotiateRecordId = null; } });
             const dropZone = document.getElementById('dropZone'), fileInput = document.getElementById('uploadFile');
             if (dropZone && fileInput) { dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); }); dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); }); dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) { fileInput.files = e.dataTransfer.files; const event = new Event('change'); fileInput.dispatchEvent(event); } }); }
             setTimeout(() => { showAlert('Гарячі клавіші: Ctrl+Z - відкат, Ctrl+Y - повтор', 'info'); }, 2000);
-            updateStaticTexts();
+            document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (key && translations[currentLang][key]) { if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = translations[currentLang][key]; else el.textContent = translations[currentLang][key]; } });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { const key = el.getAttribute('data-i18n-placeholder'); if (key && translations[currentLang][key]) el.placeholder = translations[currentLang][key]; });
+            document.documentElement.lang = currentLang === 'ru' ? 'ru' : 'en';
+            document.querySelectorAll('.lang-option').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === currentLang));
             document.querySelectorAll('.lang-option').forEach(btn => { btn.onclick = () => setLanguage(btn.dataset.lang); });
         });
 
         function triggerPhotoUpload(id) { photoUploadRecordId = id; document.getElementById('photoUploadInput').click(); }
+
         function openEdit(cell, id, columnName) {
             if (currentEditingCell) cancelEdit();
             currentEditingCell = cell; editingRowId = id; editingColumn = columnName; originalValue = cell.innerText.trim();
@@ -1547,7 +1497,9 @@
             cell.classList.add('editing'); editOverlay.classList.add('active'); editPopup.classList.add('active');
             requestAnimationFrame(() => { const cellRect = cell.getBoundingClientRect(), popupRect = editPopup.getBoundingClientRect(); let topPos = cellRect.top - popupRect.height - 10, leftPos = cellRect.left; if (topPos < 10) topPos = cellRect.bottom + 10; if (leftPos + popupRect.width > window.innerWidth) leftPos = window.innerWidth - popupRect.width - 20; editPopup.style.top = `${topPos}px`; editPopup.style.left = `${leftPos}px`; editInput.focus(); editInput.select(); });
         }
+
         function cancelEdit() { if (!currentEditingCell) return; if (currentEditingCell) currentEditingCell.classList.remove('editing'); document.getElementById('editOverlay').classList.remove('active'); document.getElementById('editPopup').classList.remove('active'); currentEditingCell = null; editingRowId = null; editingColumn = null; }
+
         async function saveEdit() {
             if (!currentEditingCell) return;
             const newValue = editInput.value.trim(), id = editingRowId, column = editingColumn, oldValue = originalValue;
@@ -1612,14 +1564,17 @@
                 return true;
             });
         }
+
         function sortDataByColumn(data, column, order) {
             if (!data || !data.length) return [];
             return data.slice().sort((a, b) => { let aVal = a[column] !== undefined ? a[column] : '', bVal = b[column] !== undefined ? b[column] : ''; const aNum = parseFloat(aVal), bNum = parseFloat(bVal); if (!isNaN(aNum) && !isNaN(bNum)) return order === 'asc' ? aNum - bNum : bNum - aNum; const comparison = aVal.toString().localeCompare(bVal.toString(), 'ru'); return order === 'asc' ? comparison : -comparison; });
         }
+
         function createDropdown(rowId, rowName, actions) {
             let buttonsHtml = actions.map(act => `<div class="dropdown-menu-item ${act.class}" onclick="${act.onclick}">${t(act.labelKey)}</div>`).join('');
             return `<div class="dropdown" data-id="${rowId}" data-name="${(!rowName ? '' : rowName.replace(/[&<>]/g, function (m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }))}"> <button class="dropdown-btn" title="Действия">⋮</button> <div class="dropdown-menu"> ${buttonsHtml} </div> </div>`;
         }
+
         function attachDropdownEvents() {
             document.querySelectorAll('.dropdown').forEach(dropdown => {
                 const btn = dropdown.querySelector('.dropdown-btn');
@@ -1644,8 +1599,11 @@
                 }
             });
         }
+
         document.addEventListener('click', function (event) { const isBtn = event.target.closest('.dropdown-btn'), isMenu = event.target.closest('.dropdown-menu'); if (!isBtn && !isMenu) { document.querySelectorAll('.dropdown.active').forEach(d => d.classList.remove('active')); } });
+        
         window.addEventListener('scroll', function () { document.querySelectorAll('.dropdown.active').forEach(d => d.classList.remove('active')); if (currentEditingCell) cancelEdit(); }, true);
+        
         window.addEventListener('resize', () => { document.querySelectorAll('.dropdown.active').forEach(dropdown => { const btn = dropdown.querySelector('.dropdown-btn'), menu = dropdown.querySelector('.dropdown-menu'); if (!btn || !menu) return; menu.style.visibility = 'hidden'; menu.style.display = 'block'; const mw = menu.offsetWidth || 190, mh = menu.offsetHeight || 150; menu.style.display = ''; menu.style.visibility = ''; let top = btn.getBoundingClientRect().top, left = btn.getBoundingClientRect().right + 8; if (left + mw > window.innerWidth) left = btn.getBoundingClientRect().left - mw - 8; if (top + mh > window.innerHeight) top = Math.max(10, window.innerHeight - mh - 10); menu.style.top = top + 'px'; menu.style.left = left + 'px'; }); if (currentEditingCell) cancelEdit(); });
 
         async function loadData() {
@@ -1681,6 +1639,7 @@
                 } else { showAlert(t('errorLoad'), 'error'); }
             } catch (e) { showAlert(t('errorConnection'), 'error'); }
         }
+
         async function loadUnpublished() { try { const resp = await fetchWithTime(API_BASE + '/admin/table/5', { headers: { 'Authorization': 'Bearer ' + token } }); if (resp.ok) { const data = await resp.json(); unpublishedData = data.data; filterAndRenderUnpublished(); } } catch (e) { } }
         async function loadBufferSales() { try { const resp = await fetchWithTime(API_BASE + '/admin/table/buffer-sales', { headers: { 'Authorization': 'Bearer ' + token } }); if (resp.ok) { const data = await resp.json(); bufferData = data.data; filterAndRenderBuffer(); } } catch (e) { } }
         async function loadSalesHistory() { try { const resp = await fetchWithTime(API_BASE + '/admin/table/sales-history', { headers: { 'Authorization': 'Bearer ' + token } }); if (resp.ok) { const data = await resp.json(); historyData = data.data; filterAndRenderHistory(); } } catch (e) { } }
@@ -1696,24 +1655,26 @@
             }
             tbody.innerHTML = html; attachDropdownEvents();
         }
+
         function filterAndRenderBuffer() {
             const filtered = filterDataByFilters(bufferData, currentFilters), sorted = sortDataByColumn(filtered, sortState.buffer.column, sortState.buffer.order); const tbody = document.getElementById('bufferBody');
-            if (!sorted || !sorted.length) { tbody.innerHTML = `<td><td colspan="9" class="text-center">${t('noBuffer')}<\/td></tr>`; return; }
+            if (!sorted || !sorted.length) { tbody.innerHTML = `<tr><td colspan="9" class="text-center">${t('noBuffer')}</td></tr>`; return; }
             let html = '';
             for (let i = 0; i < sorted.length; i++) {
                 const row = sorted[i], actions = [{ class: 'negotiate', labelKey: 'actionComplete', onclick: `endNegotiation(${row.id})` }, { class: 'delete', labelKey: 'actionCancel', onclick: `cancelNegotiation(${row.id})` }];
                 const dropdown = createDropdown(row.id, row.NAME || '', actions);
-                html += `</td><td>${row.id}</td><td>${(!row.Code ? '' : row.Code.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}<\/td><td>${row.QTY || 0}<\/td><td>${(!row.NAME ? '' : row.NAME.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}<\/td><td>${row.Price || 0}<\/td><td>${row.sales_negotiation_start_date ? new Date(row.sales_negotiation_start_date).toLocaleString() : ''}<\/td><td class="editable-cell" onclick="openEdit(this, ${row.id}, 'Description')">${(!row.Description ? '' : row.Description.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}<\/td><td class="photo-cell" onclick="triggerPhotoUpload(${row.id})">${row.Photos ? 'Изменить' : 'Добавить'}<\/td><td style="text-align: center;">${dropdown}<\/td></tr>`;
+                html += `<tr><td>${row.id}</td><td>${(!row.Code ? '' : row.Code.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}</td><td>${row.QTY || 0}</td><td>${(!row.NAME ? '' : row.NAME.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}</td><td>${row.Price || 0}</td><td>${row.sales_negotiation_start_date ? new Date(row.sales_negotiation_start_date).toLocaleString() : ''}</td><td class="editable-cell" onclick="openEdit(this, ${row.id}, 'Description')">${(!row.Description ? '' : row.Description.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}</td><td class="photo-cell" onclick="triggerPhotoUpload(${row.id})">${row.Photos ? 'Изменить' : 'Добавить'}</td><td style="text-align: center;">${dropdown}</td></tr>`;
             }
             tbody.innerHTML = html; attachDropdownEvents();
         }
+
         function filterAndRenderHistory() {
             const filtered = filterDataByFilters(historyData, currentFilters), sorted = sortDataByColumn(filtered, sortState.history.column, sortState.history.order); const tbody = document.getElementById('historyBody');
             if (!sorted || !sorted.length) { tbody.innerHTML = `<tr><td colspan="9" class="text-center">${t('noHistory')}</td></tr>`; return; }
             let html = '';
             for (let i = 0; i < sorted.length; i++) {
                 const row = sorted[i];
-                html += `<tr><td>${row.id}<\/td><td>${(!row.Code ? '' : row.Code.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}<\/td><td>${row.QTY || 0}<\/td><td>${(!row.NAME ? '' : row.NAME.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}<\/td><td>${row.Price || 0}<\/td><td>${row.sales_negotiation_start_date ? new Date(row.sales_negotiation_start_date).toLocaleString() : ''}<\/td><td>${row.sales_negotiation_end_date ? new Date(row.sales_negotiation_end_date).toLocaleString() : ''}<\/td><td class="editable-cell" onclick="openEdit(this, ${row.id}, 'Description')">${(!row.Description ? '' : row.Description.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}<\/td><td class="photo-cell" onclick="triggerPhotoUpload(${row.id})">${row.Photos ? 'Изменить' : 'Добавить'}<\/td></tr>`;
+                html += `<tr><td>${row.id}</td><td>${(!row.Code ? '' : row.Code.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}</td><td>${row.QTY || 0}</td><td>${(!row.NAME ? '' : row.NAME.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}</td><td>${row.Price || 0}</td><td>${row.sales_negotiation_start_date ? new Date(row.sales_negotiation_start_date).toLocaleString() : ''}</td><td>${row.sales_negotiation_end_date ? new Date(row.sales_negotiation_end_date).toLocaleString() : ''}</td><td class="editable-cell" onclick="openEdit(this, ${row.id}, 'Description')">${(!row.Description ? '' : row.Description.replace(/[&<>]/g, m => (m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m)))}</td><td class="photo-cell" onclick="triggerPhotoUpload(${row.id})">${row.Photos ? 'Изменить' : 'Добавить'}</td></tr>`;
             }
             tbody.innerHTML = html;
         }
@@ -1748,6 +1709,7 @@
                 showAlert(t('successDelete'), 'info');
             });
         }
+
         async function moveRow(id, source) {
             const row = document.querySelector(`.dropdown[data-id="${id}"]`), rowName = row ? row.getAttribute('data-name') : 'товар', targetText = source === 'pub' ? t('moveTargetUnpub') : t('moveTargetPub');
             showConfirmModal(t('confirmTitle'), `${t('moveConfirmMsg')} "${rowName}" (ID: ${id}) ${t('moveTargetPub')}?`, async () => {
@@ -1764,7 +1726,9 @@
                 } catch (e) { showAlert(t('errorConnection'), 'error'); }
             });
         }
+
         function startNegotiation(id) { negotiateRecordId = id; document.getElementById('negotiateQty').value = '1'; document.getElementById('negotiateModal').classList.add('active'); }
+
         async function confirmNegotiation() {
             const qty = document.getElementById('negotiateQty').value;
             if (!qty || isNaN(qty) || parseInt(qty) <= 0) { showAlert(t('errorInvalidQty'), 'error'); return; }
@@ -1774,6 +1738,7 @@
                 else { showAlert(t('errorLoad'), 'error'); }
             } catch (e) { showAlert(t('errorConnection'), 'error'); }
         }
+
         async function endNegotiation(id) {
             const row = document.querySelector(`.dropdown[data-id="${id}"]`), rowName = row ? row.getAttribute('data-name') : 'товар';
             showConfirmModal(t('confirmTitle'), `${t('endNegotiateConfirm')} "${rowName}" (ID: ${id})?`, async () => {
@@ -1784,6 +1749,7 @@
                 } catch (e) { showAlert(t('errorConnection'), 'error'); }
             });
         }
+
         async function cancelNegotiation(id) {
             const row = document.querySelector(`.dropdown[data-id="${id}"]`), rowName = row ? row.getAttribute('data-name') : 'товар';
             showConfirmModal(t('confirmTitle'), `${t('cancelNegotiateConfirm')} "${rowName}"?`, async () => {
@@ -1794,6 +1760,7 @@
                 } catch (e) { showAlert(t('errorConnection'), 'error'); }
             });
         }
+
         function applyFilters() {
             currentFilters = { code: document.getElementById('filterCode').value || null, name: document.getElementById('filterName').value || null, brand: document.getElementById('filterBrand').value || null, model: document.getElementById('filterModel').value || null, place: document.getElementById('filterPlace').value || null, qty_min: document.getElementById('filterQtyMin').value ? parseInt(document.getElementById('filterQtyMin').value) : null, qty_max: document.getElementById('filterQtyMax').value ? parseInt(document.getElementById('filterQtyMax').value) : null, price_min: document.getElementById('filterPriceMin').value ? parseInt(document.getElementById('filterPriceMin').value) : null, price_max: document.getElementById('filterPriceMax').value ? parseInt(document.getElementById('filterPriceMax').value) : null, condition: document.getElementById('filterCondition').value || null, date_from: document.getElementById('filterDateFrom').value || null, date_to: document.getElementById('filterDateTo').value || null, sort_by: sortState.published.column, sort_order: sortState.published.order };
             currentPage = 1; loadData(); filterAndRenderUnpublished(); filterAndRenderBuffer(); filterAndRenderHistory();
