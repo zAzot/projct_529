@@ -195,60 +195,6 @@ async def notify_progress(status: str, progress: int, message: str, current_oper
         except:
             pass
 
-def cleanup_old_uploads():
-    files = []
-    for f in os.listdir(UPLOAD_DIR):
-        fpath = os.path.join(UPLOAD_DIR, f)
-        if os.path.isfile(fpath):
-            files.append((fpath, os.path.getmtime(fpath)))
-    if len(files) > 50:
-        files.sort(key=lambda x: x[1])
-        to_delete = files[:45]
-        for fpath, _ in to_delete:
-            try:
-                os.remove(fpath)
-                print(f"[INFO] Deleted old file: {os.path.basename(fpath)}")
-            except Exception as e:
-                print(f"[ERROR] Could not delete {fpath}: {str(e)}")
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT Photos FROM tbl_1_pub")
-    pub_photos = cursor.fetchall()
-    cursor.execute("SELECT Photos FROM tbl_2_unpub")
-    unpub_photos = cursor.fetchall()
-    cursor.execute("SELECT Photos FROM tbl_3_buffer")
-    buffer_photos = cursor.fetchall()
-    conn.close()
-    
-    db_photos = set()
-    for row in pub_photos:
-        if row[0]:
-            for p in row[0].split(','):
-                if p.strip():
-                    db_photos.add(p.strip())
-    for row in unpub_photos:
-        if row[0]:
-            for p in row[0].split(','):
-                if p.strip():
-                    db_photos.add(p.strip())
-    for row in buffer_photos:
-        if row[0]:
-            for p in row[0].split(','):
-                if p.strip():
-                    db_photos.add(p.strip())
-    
-    for f in os.listdir(PHOTOS_DIR):
-        fpath = os.path.join(PHOTOS_DIR, f)
-        if os.path.isfile(fpath) and f != "no_photo.png":
-            if f not in db_photos:
-                try:
-                    os.remove(fpath)
-                    print(f"[INFO] Deleted photo not in DB: {os.path.basename(fpath)}")
-                except Exception as e:
-                    print(f"[ERROR] Could not delete {fpath}: {str(e)}")
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[INFO] Starting FastAPI server")
@@ -392,6 +338,60 @@ async def lifespan(app: FastAPI):
     conn.close()
     yield
     print("[INFO] FastAPI server shutting down")
+
+def cleanup_old_uploads():
+    files = []
+    for f in os.listdir(UPLOAD_DIR):
+        fpath = os.path.join(UPLOAD_DIR, f)
+        if os.path.isfile(fpath):
+            files.append((fpath, os.path.getmtime(fpath)))
+    if len(files) > 50:
+        files.sort(key=lambda x: x[1])
+        to_delete = files[:45]
+        for fpath, _ in to_delete:
+            try:
+                os.remove(fpath)
+                print(f"[INFO] Deleted old file: {os.path.basename(fpath)}")
+            except Exception as e:
+                print(f"[ERROR] Could not delete {fpath}: {str(e)}")
+    
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT Photos FROM tbl_1_pub")
+    pub_photos = cursor.fetchall()
+    cursor.execute("SELECT Photos FROM tbl_2_unpub")
+    unpub_photos = cursor.fetchall()
+    cursor.execute("SELECT Photos FROM tbl_3_buffer")
+    buffer_photos = cursor.fetchall()
+    conn.close()
+    
+    db_photos = set()
+    for row in pub_photos:
+        if row[0]:
+            for p in row[0].split(','):
+                if p.strip():
+                    db_photos.add(p.strip())
+    for row in unpub_photos:
+        if row[0]:
+            for p in row[0].split(','):
+                if p.strip():
+                    db_photos.add(p.strip())
+    for row in buffer_photos:
+        if row[0]:
+            for p in row[0].split(','):
+                if p.strip():
+                    db_photos.add(p.strip())
+    
+    for f in os.listdir(PHOTOS_DIR):
+        fpath = os.path.join(PHOTOS_DIR, f)
+        if os.path.isfile(fpath) and f != "no_photo.png":
+            if f not in db_photos:
+                try:
+                    os.remove(fpath)
+                    print(f"[INFO] Deleted photo not in DB: {os.path.basename(fpath)}")
+                except Exception as e:
+                    print(f"[ERROR] Could not delete {fpath}: {str(e)}")
 
 app = FastAPI(lifespan=lifespan)
 
