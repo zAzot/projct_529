@@ -198,7 +198,6 @@ async def notify_progress(status: str, progress: int, message: str, current_oper
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[INFO] Starting FastAPI server")
-    cleanup_old_uploads()
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='db_version'")
@@ -336,6 +335,7 @@ async def lifespan(app: FastAPI):
     """)
     conn.commit()
     conn.close()
+    cleanup_old_uploads()
     yield
     print("[INFO] FastAPI server shutting down")
 
@@ -1579,7 +1579,7 @@ async def upload_file(file: UploadFile = File(...), current_admin: dict = Depend
 async def get_favicon():
     favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
     if not os.path.exists(favicon_path):
-        raise HTTPException(status_code=500, detail="Favicon not found")
+        raise HTTPException(status_code=500 , detail="Favicon not found")
     return FileResponse(favicon_path, media_type="image/x-icon")
 
 @app.get("/logo")
