@@ -185,29 +185,6 @@
                     outline: none;
                 }
 
-        .login-container {
-            max-width: 420px;
-            margin: 15vh auto;
-            background: var(--panel-background);
-            border-radius: var(--content-border-radius);
-            box-shadow: var(--content-box-shadow);
-            padding: 40px;
-            border: 1px solid var(--border-color-gray);
-        }
-
-            .login-container h2 {
-                font-size: 24px;
-                margin-bottom: 24px;
-                text-align: center;
-            }
-
-            .login-container p {
-                text-align: center;
-                color: var(--text-gray);
-                margin-bottom: 20px;
-                font-size: 14px;
-            }
-
         .nav-tabs {
             background: var(--panel-background);
             border-radius: var(--content-border-radius);
@@ -217,6 +194,7 @@
             display: flex;
             gap: 8px;
             border: 1px solid var(--border-color-gray);
+            flex-wrap: wrap;
         }
 
         .nav-tab {
@@ -421,33 +399,18 @@
     </style>
 </head>
 <body>
-
-    <div class="container" id="authWrapper">
-        <div class="login-container">
-            <h2>Доступ к системным утилитам</h2>
-            <p>Для выполнения этих действий требуется статический код администратора, настроенный на сервере.</p>
-            <form id="authForm">
-                <div class="form-group">
-                    <label>Admin Static Code</label>
-                    <input type="password" id="adminCodeInput" required placeholder="Введите код...">
-                </div>
-                <button type="submit" class="btn btn--black full-width">Верифицировать код</button>
-            </form>
-        </div>
-    </div>
-
     <div class="container" id="mainWrapper" style="display: none;">
         <div class="header">
             <h1>Системное управление сервером</h1>
             <div>
-                <button class="btn btn--graphite" onclick="logout()">Выйти</button>
+                <button class="btn btn--graphite" onclick="localStorage.removeItem('adminToken'); window.location.href = '/login';">Выйти</button>
             </div>
         </div>
-
         <div class="nav-tabs">
             <button class="nav-tab active" data-tab="backupTab">Резервные копии (БД)</button>
             <button class="nav-tab" data-tab="adminsTab">Управление доступом</button>
             <button class="nav-tab" data-tab="logsTab">Логи</button>
+            <button class="nav-tab" data-tab="contactsTab">Контакты продавца</button>
         </div>
 
         <div id="backupTab" class="tab-content active">
@@ -457,7 +420,6 @@
                     <p>Скопировать текущие данные таблиц (tbl_1_pub, tbl_2_unpub, tbl_3_buffer) в ручной бэкап.</p>
                     <button class="btn btn--success full-width" onclick="createManualBackup()">Создать бэкап</button>
                 </div>
-
                 <div class="action-card">
                     <h3>Восстановление (Ручная копия)</h3>
                     <p>Восстановить данные из таблицы manual_backup.</p>
@@ -472,7 +434,6 @@
                     </div>
                     <button class="btn btn--black full-width" onclick="restoreManualBackup()">Восстановить данные</button>
                 </div>
-
                 <div class="action-card">
                     <h3>Восстановление (Авто-копия)</h3>
                     <p>Восстановить данные из автоматической копии (backup_table), которая была создана при последней загрузке файла.</p>
@@ -499,17 +460,10 @@
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
-                            <tr>
-                                <th>Логин</th>
-                                <th>Почта</th>
-                                <th>Пароль</th>
-                                <th>Действие</th>
-                            </tr>
+                            <tr><th>Логин</th><th>Почта</th><th>Пароль</th><th>Действие</th></tr>
                         </thead>
                         <tbody id="adminsTableBody">
-                            <tr>
-                                <td colspan="4" class="text-center">Загрузка...</td>
-                            </tr>
+                            <tr><td colspan="4" class="text-center">Загрузка</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -525,24 +479,34 @@
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Логин</th>
-                                <th>Эндпоинт</th>
-                                <th>Request Data</th>
-                                <th>Response Data</th>
-                                <th>Время создания</th>
-                            </tr>
+                            <tr><th>ID</th><th>Логин</th><th>Эндпоинт</th><th>Request Data</th><th>Response Data</th><th>Время создания</th></tr>
                         </thead>
                         <tbody id="logsTableBody">
-                            <tr>
-                                <td colspan="6" class="text-center">Загрузка...</td>
-                            </tr>
+                            <tr><td colspan="6" class="text-center">Загрузка</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
+
+        <div id="contactsTab" class="tab-content">
+            <div class="cards-grid">
+                <div class="action-card">
+                    <h3>Управление контактами продавца</h3>
+                    <p>Эти контактные данные будут отображаться для пользователей на сайте.</p>
+                    <div class="form-group">
+                        <label>Номер телефона</label>
+                        <input type="text" id="contactPhone" placeholder="Например: +380991234567">
+                    </div>
+                    <div class="form-group">
+                        <label>Имя продавца</label>
+                        <input type="text" id="contactName" placeholder="Например: Александр">
+                    </div>
+                    <button class="btn btn--success full-width" onclick="confirmUpdateContacts()">Сохранить контакты</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div id="confirmModal" class="modal">
@@ -550,26 +514,22 @@
             <h3 id="modalTitle" style="text-align: center;">Подтверждение</h3>
             <p id="modalMessage">Вы уверены?</p>
             <div class="modal-buttons">
-                <button class="btn btn--cancel" onclick="closeModal()">Отмена</button>
+                <button class="btn btn--cancel" onclick="document.getElementById('confirmModal').classList.remove('active'); confirmActionCallback = null;">Отмена</button>
                 <button class="btn btn--danger" id="modalConfirmBtn">Подтвердить</button>
             </div>
         </div>
     </div>
-
     <div id="addAdminModal" class="modal">
         <div class="modal-content">
             <h3 style="text-align: center;">Добавить нового администратора</h3>
-
             <div class="form-group">
                 <label>Логин (Username)</label>
                 <input type="text" id="regUsername" placeholder="Только буквы и цифры">
             </div>
-
             <div class="form-group">
                 <label>Email (необязательно)</label>
                 <input type="email" id="regEmail" placeholder="admin@example.com">
             </div>
-
             <div class="form-group">
                 <label>Пароль</label>
                 <div style="display: flex; gap: 8px;">
@@ -577,9 +537,8 @@
                     <input type="password" id="regPassword" placeholder="Минимум 6 символов" style="flex: 1;">
                 </div>
             </div>
-
             <div class="modal-buttons">
-                <button class="btn btn--cancel" onclick="closeAddAdminModal()">Отмена</button>
+                <button class="btn btn--cancel" onclick="document.getElementById('addAdminModal').classList.remove('active');">Отмена</button>
                 <button class="btn btn--success" onclick="registerAdmin()">Добавить</button>
             </div>
         </div>
@@ -587,7 +546,6 @@
 
     <script>
         const API_BASE = window.location.origin;
-        let staticAdminCode = "";
 
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', function () {
@@ -598,113 +556,116 @@
             });
         });
 
-        document.getElementById('authForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const code = document.getElementById('adminCodeInput').value;
+        const token = localStorage.getItem('adminToken');
+        if (!token) { window.location.href = '/login'; }
 
-            const formData = new FormData();
-            formData.append('admin_code', code);
-
+        (async function initialize() {
             try {
-                const response = await fetch(API_BASE + '/admin/verify-password', {
-                    method: 'POST',
-                    body: formData
-                });
+                const resp = await fetch(API_BASE + '/admin/verify-super', { headers: { 'Authorization': 'Bearer ' + token } });
+                if (!resp.ok) { localStorage.removeItem('adminToken'); window.location.href = '/login'; return; }
+                const data = await resp.json();
+                if (!data.valid) { localStorage.removeItem('adminToken'); window.location.href = '/login'; return; }
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.verified) {
-                        staticAdminCode = code;
-                        document.getElementById('authWrapper').style.display = 'none';
-                        document.getElementById('mainWrapper').style.display = 'block';
-                        showAlert('Код принят. Доступ открыт.', 'success');
-                        loadAdmins();
-                        loadLogs();
-                    }
-                } else {
-                    showAlert('Неверный код администратора!', 'error');
-                }
-            } catch (error) {
-                showAlert('Ошибка подключения к серверу.', 'error');
-            }
-        });
+                document.getElementById('mainWrapper').style.display = 'block';
+                loadAdmins();
+                loadLogs();
+                loadContacts();
+            } catch (e) { localStorage.removeItem('adminToken'); window.location.href = '/login'; }
+        })();
 
-        async function loadAdmins() {
+        async function loadContacts() {
             try {
-                const res = await fetch(`${API_BASE}/admin/admins-list?admin_code=${encodeURIComponent(staticAdminCode)}`);
+                const res = await fetch(API_BASE + '/contacts');
                 if (res.ok) {
                     const data = await res.json();
-                    renderAdminsTable(data.admins);
+                    document.getElementById('contactPhone').value = data.phone || '';
+                    document.getElementById('contactName').value = data.name || '';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки контактов:', error);
+            }
+        }
+
+        function confirmUpdateContacts() {
+            const phone = document.getElementById('contactPhone').value.trim();
+            const name = document.getElementById('contactName').value.trim();
+
+            showModal('Обновление контактов', 'Вы уверены, что хотите сохранить новые контактные данные?', async () => {
+                const payload = { phone: phone, name: name };
+
+                try {
+                    const res = await fetch(API_BASE + '/admin/contacts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    handleResponse(res, data, 'Контактные данные успешно обновлены');
+                } catch (e) {
+                    showAlert('Ошибка выполнения запроса', 'error');
+                }
+            });
+        }
+
+        async function loadAdmins() {
+            const tbody = document.getElementById('adminsTableBody');
+            try {
+                const res = await fetch(`${API_BASE}/admin/admins-list`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (!data.admins || data.admins.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">БД пуста</td></tr>';
+                    } else {
+                        let html = '';
+                        data.admins.forEach(admin => {
+                            html += `<tr><td>${admin.username}</td><td>${admin.email}</td><td>******</td><td><button class="btn btn--danger btn--small" onclick="confirmDeleteAdmin('${admin.email}')">Удалить</button></td></tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    }
                 } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">БД пуста</td></tr>';
                     showAlert('Не удалось загрузить список', 'error');
                 }
             } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">БД пуста</td></tr>';
                 showAlert('Ошибка загрузки данных базы', 'error');
             }
         }
 
-        function renderAdminsTable(adminsList) {
-            const tbody = document.getElementById('adminsTableBody');
-            if (!adminsList || adminsList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center">Список пуст</td></tr>';
-                return;
-            }
-
-            let html = '';
-            adminsList.forEach(admin => {
-                html += `
-                        <tr>
-                            <td>${admin.username}</td>
-                            <td>${admin.email}</td>
-                            <td>******</td>
-                            <td>
-                                <button class="btn btn--danger btn--small" onclick="confirmDeleteAdmin('${admin.email}')">Удалить</button>
-                            </td>
-                        </tr>
-                    `;
-            });
-            tbody.innerHTML = html;
-        }
-
         async function loadLogs() {
+            const tbody = document.getElementById('logsTableBody');
             try {
-                const res = await fetch(`${API_BASE}/admin/logs?admin_code=${encodeURIComponent(staticAdminCode)}`);
+                const res = await fetch(`${API_BASE}/admin/logs`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
                 if (res.ok) {
                     const data = await res.json();
-                    renderLogsTable(data.logs);
+                    if (!data.logs || data.logs.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center">БД пуста</td></tr>';
+                    } else {
+                        let html = '';
+                        data.logs.forEach(log => {
+                            const reqData = log.request_data ? log.request_data.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+                            const resData = log.response_data ? log.response_data.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+                            const createdTime = log.created_at ? new Date(log.created_at).toLocaleString() : '';
+                            html += `<tr><td>${log.id}</td><td>${log.login || ''}</td><td>${log.endpoint || ''}</td><td class="log-data-cell" title="${reqData}">${reqData}</td><td class="log-data-cell" title="${resData}">${resData}</td><td>${createdTime}</td></tr>`;
+                        });
+                        tbody.innerHTML = html;
+                    }
                 } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center">БД пуста</td></tr>';
                     showAlert('Не удалось загрузить логи', 'error');
                 }
             } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">БД пуста</td></tr>';
                 showAlert('Ошибка загрузки логов', 'error');
             }
-        }
-
-        function renderLogsTable(logsList) {
-            const tbody = document.getElementById('logsTableBody');
-            if (!logsList || logsList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Логов нет</td></tr>';
-                return;
-            }
-
-            let html = '';
-            logsList.forEach(log => {
-                const reqData = log.request_data ? log.request_data.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-                const resData = log.response_data ? log.response_data.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-                const createdTime = log.created_at ? new Date(log.created_at).toLocaleString() : '';
-
-                html += `
-                        <tr>
-                            <td>${log.id}</td>
-                            <td>${log.login || ''}</td>
-                            <td>${log.endpoint || ''}</td>
-                            <td class="log-data-cell" title="${reqData}">${reqData}</td>
-                            <td class="log-data-cell" title="${resData}">${resData}</td>
-                            <td>${createdTime}</td>
-                        </tr>
-                    `;
-            });
-            tbody.innerHTML = html;
         }
 
         function showAddAdminModal() {
@@ -714,10 +675,6 @@
             document.getElementById('regPassword').type = 'password';
             toggleGenerateButton();
             document.getElementById('addAdminModal').classList.add('active');
-        }
-
-        function closeAddAdminModal() {
-            document.getElementById('addAdminModal').classList.remove('active');
         }
 
         const regUsername = document.getElementById('regUsername');
@@ -734,21 +691,18 @@
 
         regUsername.addEventListener('input', toggleGenerateButton);
         regPassword.addEventListener('input', toggleGenerateButton);
-
         generatePwdBtn.addEventListener('click', () => {
             const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$%&?!`~_-<>";
             const passwordLength = 12;
             let generatedPassword = "";
-
             for (let i = 0; i < passwordLength; i++) {
                 const randomIndex = Math.floor(Math.random() * chars.length);
                 generatedPassword += chars[randomIndex];
             }
-
             regPassword.value = generatedPassword;
             regPassword.type = 'text';
             toggleGenerateButton();
-            showAlert('Пароль сгенерирован! Сохраните его в надежном месте.', 'info');
+            showAlert('Пароль сгенерирован! Сохраните его в надежном месте', 'info');
         });
 
         async function registerAdmin() {
@@ -759,13 +713,11 @@
             if (!username || !password) {
                 return showAlert('Заполните обязательные поля (Логин и Пароль)', 'error');
             }
-
             if (!email) {
                 email = `${username}@system.local`;
             }
 
             const payload = {
-                admin_code: staticAdminCode,
                 username: username,
                 email: email,
                 password: password
@@ -774,14 +726,16 @@
             try {
                 const res = await fetch(API_BASE + '/admin/register', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
                     body: JSON.stringify(payload)
                 });
-
                 const data = await res.json();
                 if (res.ok) {
-                    showAlert('Администратор успешно создан!', 'success');
-                    closeAddAdminModal();
+                    showAlert('Администратор успешно создан', 'success');
+                    document.getElementById('addAdminModal').classList.remove('active');
                     loadAdmins();
                 } else {
                     showAlert(data.detail || 'Ошибка регистрации', 'error');
@@ -791,36 +745,35 @@
             }
         }
 
-        async function createManualBackup() {
-            const formData = new FormData();
-            formData.append('admin_code', staticAdminCode);
-
-            try {
-                const res = await fetch(API_BASE + '/admin/backup/create', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                handleResponse(res, data, 'Ручная копия успешно создана!');
-            } catch (e) {
-                showAlert('Ошибка выполнения запроса', 'error');
-            }
+        function createManualBackup() {
+            showModal('Создание ручной копии', 'Вы уверены, что хотите перезаписать текущий ручной бэкап новыми данными?', async () => {
+                try {
+                    const res = await fetch(API_BASE + '/admin/backup/create', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    const data = await res.json();
+                    handleResponse(res, data, 'Ручная копия успешно создана');
+                } catch (e) {
+                    showAlert('Ошибка выполнения запроса', 'error');
+                }
+            });
         }
 
         async function restoreManualBackup() {
             const targetTables = document.getElementById('restoreManualTables').value;
             showModal('Восстановление из ручной копии', 'Вы уверены, что хотите перезаписать текущие данные данными из ручного бэкапа?', async () => {
                 const formData = new FormData();
-                formData.append('admin_code', staticAdminCode);
                 formData.append('target_tables', targetTables);
 
                 try {
                     const res = await fetch(API_BASE + '/admin/backup/restore', {
                         method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token },
                         body: formData
                     });
                     const data = await res.json();
-                    handleResponse(res, data, 'Восстановление из ручной копии завершено!');
+                    handleResponse(res, data, 'Восстановление из ручной копии завершено');
                 } catch (e) {
                     showAlert('Ошибка выполнения запроса', 'error');
                 }
@@ -831,16 +784,16 @@
             const targetTables = document.getElementById('restoreAutoTables').value;
             showModal('Восстановление из авто-копии', 'Эта копия была создана перед последней загрузкой файла. Перезаписать текущие данные?', async () => {
                 const formData = new FormData();
-                formData.append('admin_code', staticAdminCode);
                 formData.append('target_tables', targetTables);
 
                 try {
                     const res = await fetch(API_BASE + '/admin/backup/restore-auto', {
                         method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token },
                         body: formData
                     });
                     const data = await res.json();
-                    handleResponse(res, data, 'Восстановление из авто-копии завершено!');
+                    handleResponse(res, data, 'Восстановление из авто-копии завершено');
                 } catch (e) {
                     showAlert('Ошибка выполнения запроса', 'error');
                 }
@@ -849,13 +802,14 @@
 
         function confirmDeleteAdmin(targetEmail) {
             showModal('Удаление администратора', `Вы уверены, что хотите удалить администратора ${targetEmail}?`, async () => {
+                const formData = new FormData();
+                formData.append('email', targetEmail);
+
                 try {
                     const res = await fetch(API_BASE + '/admin/delete', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ admin_code: staticAdminCode, email: targetEmail })
+                        headers: { 'Authorization': 'Bearer ' + token },
+                        body: formData
                     });
 
                     if (res.ok) {
@@ -897,22 +851,11 @@
             modal.classList.add('active');
         }
 
-        function closeModal() {
-            modal.classList.remove('active');
-            confirmActionCallback = null;
-        }
-
         document.getElementById('modalConfirmBtn').addEventListener('click', () => {
             if (confirmActionCallback) confirmActionCallback();
-            closeModal();
+            document.getElementById('confirmModal').classList.remove('active');
+            confirmActionCallback = null;
         });
-
-        function logout() {
-            staticAdminCode = "";
-            document.getElementById('adminCodeInput').value = "";
-            document.getElementById('mainWrapper').style.display = 'none';
-            document.getElementById('authWrapper').style.display = 'block';
-        }
     </script>
 </body>
 </html>

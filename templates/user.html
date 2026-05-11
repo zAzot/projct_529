@@ -57,13 +57,53 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             gap: 15px;
         }
 
         .header-left {
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .header-contacts {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 1.2;
+        }
+
+        .contact-pretext {
+            font-size: 14px;
+            color: var(--text-color-base);
+            margin-bottom: 4px;
+        }
+
+        .contact-name {
+            font-size: 26px;
+            color: var(--text-gray);
+        }
+
+        .contact-phone {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+            .contact-phone:hover {
+                color: var(--text-color-base);
+            }
 
         .header-logo {
             height: 90px;
@@ -534,6 +574,33 @@
                 height: 60px;
             }
 
+            .header-contacts {
+                margin-left: 0;
+            }
+
+            .contact-pretext {
+                font-size: 12px;
+            }
+
+            .contact-name {
+                font-size: 18px;
+            }
+
+            .contact-phone {
+                font-size: 18px;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .header-left {
+                width: 100%;
+                justify-content: flex-start;
+                margin-bottom: 10px;
+            }
+
             .language-switcher .lang-option {
                 padding: 6px 14px;
                 font-size: 13px;
@@ -670,10 +737,17 @@
             <div class="header">
                 <div class="header-left">
                     <img id="headerLogo" class="header-logo" src="" alt="Logo" style="display: none;">
+                    <div id="headerContacts" class="header-contacts">
+                        <div class="contact-pretext" data-i18n="contactPretext">по питання купівлі звоніть за тепефоном:</div>
+                        <a id="contactPhone" class="contact-phone" href=""></a>
+                        <div id="contactName" class="contact-name"></div>
+                    </div>
                 </div>
-                <div class="language-switcher">
-                    <button class="lang-option active" data-lang="ru">RU</button>
-                    <button class="lang-option" data-lang="en">EN</button>
+                <div class="header-right">
+                    <div class="language-switcher">
+                        <button class="lang-option active" data-lang="ru">RU</button>
+                        <button class="lang-option" data-lang="en">EN</button>
+                    </div>
                 </div>
             </div>
             <button class="btn btn--filter" onclick="const sidebar = document.getElementById('filtersSidebar'); sidebar.classList.toggle('show');">Фильтры</button>
@@ -733,6 +807,7 @@
     <script>
         const translations = {
             ru: {
+                contactPretext: 'по вопросу покупки звоните по телефону:',
                 filtersTitle: 'Фильтры товаров',
                 filterCodeLabel: 'Код товара', filterCodePlaceholder: 'Введите код',
                 filterNameLabel: 'Название', filterNamePlaceholder: 'Название товара',
@@ -751,6 +826,7 @@
                 codeLabel: 'Код:', brandLabel: 'Бренд:', modelLabel: 'Модель:', conditionLabel: 'Состояние:', autoLabel: 'Авто:'
             },
             en: {
+                contactPretext: 'for purchasing inquiries, please call:',
                 filtersTitle: 'Product Filters',
                 filterCodeLabel: 'Product Code', filterCodePlaceholder: 'Enter code',
                 filterNameLabel: 'Name', filterNamePlaceholder: 'Product name',
@@ -782,34 +858,6 @@
         })();
         function t(key) {
             return translations[currentLang] && translations[currentLang][key] ? translations[currentLang][key] : key;
-        }
-        function updateStaticTexts() {
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (key && translations[currentLang][key]) {
-                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        el.placeholder = translations[currentLang][key];
-                    } else {
-                        el.textContent = translations[currentLang][key];
-                    }
-                }
-            });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (key && translations[currentLang][key]) {
-                    el.placeholder = translations[currentLang][key];
-                }
-            });
-            document.documentElement.lang = currentLang === 'ru' ? 'ru' : 'en';
-            document.querySelectorAll('.lang-option').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.lang === currentLang);
-            });
-        }
-        function setLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('appLang', lang);
-            updateStaticTexts();
-            loadData();
         }
         function escapeHtml(text) {
             if (!text) return '';
@@ -849,48 +897,6 @@
             document.getElementById('itemModalOverlay').classList.remove('active');
             document.getElementById('itemModal').classList.remove('active');
             document.body.style.overflow = '';
-        }
-        function applyFilters() {
-            let priceMinVal = document.getElementById('filterPriceMin').value;
-            let priceMinNum = null;
-            if (priceMinVal !== null && priceMinVal !== '') {
-                const num = parseInt(priceMinVal);
-                if (!isNaN(num)) priceMinNum = num;
-            }
-            let priceMaxVal = document.getElementById('filterPriceMax').value;
-            let priceMaxNum = null;
-            if (priceMaxVal !== null && priceMaxVal !== '') {
-                const num = parseInt(priceMaxVal);
-                if (!isNaN(num)) priceMaxNum = num;
-            }
-            currentFilters = {
-                code: document.getElementById('filterCode').value || null,
-                name: document.getElementById('filterName').value || null,
-                brand: document.getElementById('filterBrand').value || null,
-                model: document.getElementById('filterModel').value || null,
-                price_min: priceMinNum,
-                price_max: priceMaxNum,
-                condition: document.getElementById('filterCondition').value || null,
-                sort_by: sortState.column,
-                sort_order: sortState.order
-            };
-            currentPage = 1;
-            loadData();
-            if (window.innerWidth <= 768) {
-                document.getElementById('filtersSidebar').classList.remove('show');
-            }
-        }
-        function resetFilters() {
-            ['filterCode', 'filterName', 'filterBrand', 'filterModel', 'filterPriceMin', 'filterPriceMax', 'filterCondition'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
-            });
-            currentFilters = {};
-            currentPage = 1;
-            loadData();
-            if (window.innerWidth <= 768) {
-                document.getElementById('filtersSidebar').classList.remove('show');
-            }
         }
         async function loadData() {
             const container = document.getElementById('tableContainer');
@@ -950,24 +956,24 @@
                                 }
                             }
                             html += `<tr>
-                                                    <td class="col-photo">
-                                                        <img src="${photoSrc}" alt="" class="item-photo" loading="lazy">
-                                                     </td>
-                                                    <td class="col-info">
-                                                        <div class="item-title">${escapeHtml(row.NAME || '')}</div>
-                                                        <div class="item-specs">
-                                                            <strong>${t('codeLabel')}</strong> ${escapeHtml(row.Code || '')} <span class="bullet">•</span>
-                                                            <strong>${t('brandLabel')}</strong> ${escapeHtml(row.Brand || '')} <span class="bullet">•</span>
-                                                            <strong>${t('modelLabel')}</strong> ${escapeHtml(row.Model || '')} <span class="bullet">•</span>
-                                                            <strong>${t('conditionLabel')}</strong> ${escapeHtml(row.Conditions || '')} <span class="bullet">•</span>
-                                                            <strong>${t('autoLabel')}</strong> ${escapeHtml(row.Truck_models || '')}
-                                                        </div>
-                                                     </td>
-                                                    <td class="col-action">
-                                                        <div class="item-price">${escapeHtml(row.Price ? row.Price.toString() : '0')} ${t('priceEuro')}</div>
-                                                        <button class="btn btn--black btn--small" onclick="openItemModal(${row.id})">${t('detailsBtn')}</button>
-                                                     </td>
-                                                </tr>`;
+                                                        <td class="col-photo">
+                                                            <img src="${photoSrc}" alt="" class="item-photo" loading="lazy">
+                                                         </td>
+                                                        <td class="col-info">
+                                                            <div class="item-title">${escapeHtml(row.NAME || '')}</div>
+                                                            <div class="item-specs">
+                                                                <strong>${t('codeLabel')}</strong> ${escapeHtml(row.Code || '')} <span class="bullet">•</span>
+                                                                <strong>${t('brandLabel')}</strong> ${escapeHtml(row.Brand || '')} <span class="bullet">•</span>
+                                                                <strong>${t('modelLabel')}</strong> ${escapeHtml(row.Model || '')} <span class="bullet">•</span>
+                                                                <strong>${t('conditionLabel')}</strong> ${escapeHtml(row.Conditions || '')} <span class="bullet">•</span>
+                                                                <strong>${t('autoLabel')}</strong> ${escapeHtml(row.Truck_models || '')}
+                                                            </div>
+                                                         </td>
+                                                        <td class="col-action">
+                                                            <div class="item-price">${escapeHtml(row.Price ? row.Price.toString() : '0')} ${t('priceEuro')}</div>
+                                                            <button class="btn btn--black btn--small" onclick="openItemModal(${row.id})">${t('detailsBtn')}</button>
+                                                         </td>
+                                                    </tr>`;
                         }
                         document.getElementById('tableBody').innerHTML = html;
                     } else {
@@ -983,20 +989,20 @@
                                 }
                             }
                             cardsHtml += `
-                                            <div class="mobile-product-card">
-                                                <img src="${photoSrc}" alt="" class="item-photo" loading="lazy">
-                                                <div class="item-title">${escapeHtml(row.NAME || '')}</div>
-                                                <div class="item-specs">
-                                                    <strong>${t('codeLabel')}</strong> ${escapeHtml(row.Code || '')} <span class="bullet">•</span>
-                                                    <strong>${t('brandLabel')}</strong> ${escapeHtml(row.Brand || '')} <span class="bullet">•</span>
-                                                    <strong>${t('modelLabel')}</strong> ${escapeHtml(row.Model || '')} <span class="bullet">•</span>
-                                                    <strong>${t('conditionLabel')}</strong> ${escapeHtml(row.Conditions || '')} <span class="bullet">•</span>
-                                                    <strong>${t('autoLabel')}</strong> ${escapeHtml(row.Truck_models || '')}
+                                                <div class="mobile-product-card">
+                                                    <img src="${photoSrc}" alt="" class="item-photo" loading="lazy">
+                                                    <div class="item-title">${escapeHtml(row.NAME || '')}</div>
+                                                    <div class="item-specs">
+                                                        <strong>${t('codeLabel')}</strong> ${escapeHtml(row.Code || '')} <span class="bullet">•</span>
+                                                        <strong>${t('brandLabel')}</strong> ${escapeHtml(row.Brand || '')} <span class="bullet">•</span>
+                                                        <strong>${t('modelLabel')}</strong> ${escapeHtml(row.Model || '')} <span class="bullet">•</span>
+                                                        <strong>${t('conditionLabel')}</strong> ${escapeHtml(row.Conditions || '')} <span class="bullet">•</span>
+                                                        <strong>${t('autoLabel')}</strong> ${escapeHtml(row.Truck_models || '')}
+                                                    </div>
+                                                    <div class="item-price">${escapeHtml(row.Price ? row.Price.toString() : '0')} ${t('priceEuro')}</div>
+                                                    <button class="btn btn--black btn--small" onclick="openItemModal(${row.id})">${t('detailsBtn')}</button>
                                                 </div>
-                                                <div class="item-price">${escapeHtml(row.Price ? row.Price.toString() : '0')} ${t('priceEuro')}</div>
-                                                <button class="btn btn--black btn--small" onclick="openItemModal(${row.id})">${t('detailsBtn')}</button>
-                                            </div>
-                                        `;
+                                            `;
                         }
                         cardsHtml += '</div>';
                         container.innerHTML = cardsHtml;
@@ -1036,7 +1042,6 @@
                 const nameResponse = await fetch(API_BASE + '/site-name');
                 if (nameResponse.ok) {
                     const nameData = await nameResponse.json();
-                } else {
                 }
                 const logoImg = document.getElementById('headerLogo');
                 logoImg.src = API_BASE + '/logo';
@@ -1046,27 +1051,123 @@
                 logoImg.onerror = () => {
                     logoImg.style.display = 'none';
                 };
-            } catch (e) {
-            }
+            } catch (e) { }
+            try {
+                const contactsResp = await fetch(API_BASE + '/contacts');
+                if (contactsResp.ok) {
+                    const contactsData = await contactsResp.json();
+                    if (contactsData.name) document.getElementById('contactName').textContent = contactsData.name;
+                    if (contactsData.phone) {
+                        const phoneEl = document.getElementById('contactPhone');
+                        phoneEl.textContent = contactsData.phone;
+                        phoneEl.href = 'tel:' + contactsData.phone.replace(/[^0-9+]/g, '');
+                    }
+                }
+            } catch (e) { }
             ['filterCode', 'filterName', 'filterBrand', 'filterModel', 'filterPriceMin', 'filterPriceMax', 'filterCondition'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        applyFilters();
+                        let priceMinVal = document.getElementById('filterPriceMin').value;
+                        let priceMinNum = null;
+                        if (priceMinVal !== null && priceMinVal !== '') {
+                            const num = parseInt(priceMinVal);
+                            if (!isNaN(num)) priceMinNum = num;
+                        }
+                        let priceMaxVal = document.getElementById('filterPriceMax').value;
+                        let priceMaxNum = null;
+                        if (priceMaxVal !== null && priceMaxVal !== '') {
+                            const num = parseInt(priceMaxVal);
+                            if (!isNaN(num)) priceMaxNum = num;
+                        }
+                        currentFilters = {
+                            code: document.getElementById('filterCode').value || null,
+                            name: document.getElementById('filterName').value || null,
+                            brand: document.getElementById('filterBrand').value || null,
+                            model: document.getElementById('filterModel').value || null,
+                            price_min: priceMinNum,
+                            price_max: priceMaxNum,
+                            condition: document.getElementById('filterCondition').value || null,
+                            sort_by: sortState.column,
+                            sort_order: sortState.order
+                        };
+                        currentPage = 1;
+                        loadData();
+                        if (window.innerWidth <= 768) {
+                            document.getElementById('filtersSidebar').classList.remove('show');
+                        }
                     }
                 });
             });
-            document.getElementById('applyFiltersBtn').onclick = applyFilters;
-            document.getElementById('resetFiltersBtn').onclick = resetFilters;
+            document.getElementById('applyFiltersBtn').onclick = () => {
+                let priceMinVal = document.getElementById('filterPriceMin').value;
+                let priceMinNum = null;
+                if (priceMinVal !== null && priceMinVal !== '') {
+                    const num = parseInt(priceMinVal);
+                    if (!isNaN(num)) priceMinNum = num;
+                }
+                let priceMaxVal = document.getElementById('filterPriceMax').value;
+                let priceMaxNum = null;
+                if (priceMaxVal !== null && priceMaxVal !== '') {
+                    const num = parseInt(priceMaxVal);
+                    if (!isNaN(num)) priceMaxNum = num;
+                }
+                currentFilters = {
+                    code: document.getElementById('filterCode').value || null,
+                    name: document.getElementById('filterName').value || null,
+                    brand: document.getElementById('filterBrand').value || null,
+                    model: document.getElementById('filterModel').value || null,
+                    price_min: priceMinNum,
+                    price_max: priceMaxNum,
+                    condition: document.getElementById('filterCondition').value || null,
+                    sort_by: sortState.column,
+                    sort_order: sortState.order
+                };
+                currentPage = 1;
+                loadData();
+                if (window.innerWidth <= 768) {
+                    document.getElementById('filtersSidebar').classList.remove('show');
+                }
+            };
+            document.getElementById('resetFiltersBtn').onclick = () => {
+                ['filterCode', 'filterName', 'filterBrand', 'filterModel', 'filterPriceMin', 'filterPriceMax', 'filterCondition'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                currentFilters = {};
+                currentPage = 1;
+                loadData();
+                if (window.innerWidth <= 768) {
+                    document.getElementById('filtersSidebar').classList.remove('show');
+                }
+            };
             try {
                 const response = await fetch(API_BASE + '/healthcheck');
                 if (response.ok) {
                     const status = await response.json();
                 }
-            } catch (e) {
-            }
-            updateStaticTexts();
+            } catch (e) { }
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (key && translations[currentLang][key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = translations[currentLang][key];
+                    } else {
+                        el.textContent = translations[currentLang][key];
+                    }
+                }
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (key && translations[currentLang][key]) {
+                    el.placeholder = translations[currentLang][key];
+                }
+            });
+            document.documentElement.lang = currentLang === 'ru' ? 'ru' : 'en';
+            document.querySelectorAll('.lang-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === currentLang);
+            });
             loadData();
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') closeItemModal();
@@ -1084,7 +1185,26 @@
                 btn.onclick = () => {
                     currentLang = btn.dataset.lang;
                     localStorage.setItem('appLang', currentLang);
-                    updateStaticTexts();
+                    document.querySelectorAll('[data-i18n]').forEach(el => {
+                        const key = el.getAttribute('data-i18n');
+                        if (key && translations[currentLang][key]) {
+                            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                                el.placeholder = translations[currentLang][key];
+                            } else {
+                                el.textContent = translations[currentLang][key];
+                            }
+                        }
+                    });
+                    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                        const key = el.getAttribute('data-i18n-placeholder');
+                        if (key && translations[currentLang][key]) {
+                            el.placeholder = translations[currentLang][key];
+                        }
+                    });
+                    document.documentElement.lang = currentLang === 'ru' ? 'ru' : 'en';
+                    document.querySelectorAll('.lang-option').forEach(innerBtn => {
+                        innerBtn.classList.toggle('active', innerBtn.dataset.lang === currentLang);
+                    });
                     loadData();
                 };
             });

@@ -15,3 +15,4 @@ httpx
 cryptography
 python-dotenv
 openpyxl
+jose

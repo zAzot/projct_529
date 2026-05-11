@@ -43,47 +43,10 @@ restore_lock = asyncio.Lock()
 RATE_LIMIT_REQUESTS = 100
 RATE_LIMIT_PERIOD = 60
 
-def verify_static_admin_code(code: str) -> bool:
-    provided_hash = hashlib.sha256(code.encode()).hexdigest()
-    static_code_hash = hashlib.sha256(ADMIN_STATIC_CODE.encode()).hexdigest()
-    return hmac.compare_digest(provided_hash, static_code_hash)
-
-def rate_limit_check(client_ip: str):
-    now = time.time()
-    timestamps = rate_limit_storage[client_ip]
-    timestamps = [t for t in timestamps if now - t < RATE_LIMIT_PERIOD]
-    if len(timestamps) >= RATE_LIMIT_REQUESTS:
-        return False
-    timestamps.append(now)
-    rate_limit_storage[client_ip] = timestamps
-    return True
-
 def get_all_existing_ids(conn):
     cursor = conn.cursor()
     cursor.execute("SELECT id FROM tbl_1_pub UNION SELECT id FROM tbl_2_unpub UNION SELECT id FROM tbl_3_buffer")
     return {row[0] for row in cursor.fetchall()}
-
-def get_next_id_batch(existing_ids, count):
-    result = []
-    candidate = 1
-    while len(result) < count:
-        if candidate not in existing_ids:
-            result.append(candidate)
-        candidate += 1
-    return result
-
-def reset_table_sequence(table_name: str):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT MAX(id) FROM {table_name}")
-    max_id = cursor.fetchone()[0]
-    if max_id is not None:
-        cursor.execute(f"UPDATE sqlite_sequence SET seq = {max_id} WHERE name = '{table_name}'")
-    else:
-        cursor.execute(f"INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES ('{table_name}', 0)")
-    conn.commit()
-    conn.close()
-    print(f"[INFO] Reset counter for table {table_name}")
 
 def log_admin_action(admin: dict, endpoint: str, request_data: str, response_data: str):
     try:
@@ -129,7 +92,6 @@ class AdminCreate(BaseModel):
     username: str
     email: Optional[str] = None
     password: str
-    admin_code: str
     @field_validator('username')
     def username_alphanumeric(cls, v):
         if not v.isalnum():
@@ -149,7 +111,7 @@ class AdminCreate(BaseModel):
         return v
 
 class AdminDelete(BaseModel):
-    admin_code: str
+    pass
 
 class UserResponse(BaseModel):
     username: str
@@ -180,10 +142,14 @@ class AddUnpublishedItemRequest(BaseModel):
     truck_models: str = None
     publishing_date: str = None
 
-async def notify_progress(status: str, progress: int, message: str, current_operation: str):
+class ContactUpdate(BaseModel):
+    phone: str
+    name: str
+
+async def notify_progress(status_val: str, progress: int, message: str, current_operation: str):
     global progress_status
     progress_status = {
-        "status": status,
+        "status": status_val,
         "progress": progress,
         "message": message,
         "current_operation": current_operation,
@@ -335,11 +301,6 @@ async def lifespan(app: FastAPI):
     """)
     conn.commit()
     conn.close()
-    cleanup_old_uploads()
-    yield
-    print("[INFO] FastAPI server shutting down")
-
-def cleanup_old_uploads():
     files = []
     for f in os.listdir(UPLOAD_DIR):
         fpath = os.path.join(UPLOAD_DIR, f)
@@ -354,18 +315,15 @@ def cleanup_old_uploads():
                 print(f"[INFO] Deleted old file: {os.path.basename(fpath)}")
             except Exception as e:
                 print(f"[ERROR] Could not delete {fpath}: {str(e)}")
-    
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT Photos FROM tbl_1_pub")
-    pub_photos = cursor.fetchall()
-    cursor.execute("SELECT Photos FROM tbl_2_unpub")
-    unpub_photos = cursor.fetchall()
-    cursor.execute("SELECT Photos FROM tbl_3_buffer")
-    buffer_photos = cursor.fetchall()
-    conn.close()
-    
+    conn_cleanup = sqlite3.connect(DB_PATH)
+    cursor_cleanup = conn_cleanup.cursor()
+    cursor_cleanup.execute("SELECT Photos FROM tbl_1_pub")
+    pub_photos = cursor_cleanup.fetchall()
+    cursor_cleanup.execute("SELECT Photos FROM tbl_2_unpub")
+    unpub_photos = cursor_cleanup.fetchall()
+    cursor_cleanup.execute("SELECT Photos FROM tbl_3_buffer")
+    buffer_photos = cursor_cleanup.fetchall()
+    conn_cleanup.close()
     db_photos = set()
     for row in pub_photos:
         if row[0]:
@@ -382,7 +340,6 @@ def cleanup_old_uploads():
             for p in row[0].split(','):
                 if p.strip():
                     db_photos.add(p.strip())
-    
     for f in os.listdir(PHOTOS_DIR):
         fpath = os.path.join(PHOTOS_DIR, f)
         if os.path.isfile(fpath) and f != "no_photo.png":
@@ -392,6 +349,8 @@ def cleanup_old_uploads():
                     print(f"[INFO] Deleted photo not in DB: {os.path.basename(fpath)}")
                 except Exception as e:
                     print(f"[ERROR] Could not delete {fpath}: {str(e)}")
+    yield
+    print("[INFO] FastAPI server shutting down")
 
 app = FastAPI(lifespan=lifespan)
 
@@ -441,9 +400,14 @@ async def rate_limit_middleware(request: Request, call_next):
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
         client_ip = forwarded.split(",")[0].strip()
-    if not rate_limit_check(client_ip):
+    now = time.time()
+    timestamps = rate_limit_storage[client_ip]
+    timestamps = [t for t in timestamps if now - t < RATE_LIMIT_PERIOD]
+    if len(timestamps) >= RATE_LIMIT_REQUESTS:
         print(f"[WARN] Rate limit exceeded for IP: {client_ip}")
         return JSONResponse(status_code=429, content={"detail": "Too many requests"})
+    timestamps.append(now)
+    rate_limit_storage[client_ip] = timestamps
     response = await call_next(request)
     return response
 
@@ -457,8 +421,32 @@ async def body_size_middleware(request: Request, call_next):
 
 @app.middleware("http")
 async def maintenance_middleware(request: Request, call_next):
-    if config.get('MAINTENANCE_MODE') and request.url.path not in ['/maintenance', '/admin/maintenance-off', '/admin/backup/restore', '/admin/backup/create', '/admin/backup/restore-auto', '/ws/progress', '/progress-status', '/data/filter', '/healthcheck', '/pages-count', '/data', '/photos', '/item', '/admin/logs', '/admin/admins-list']:
+    if config.get('MAINTENANCE_MODE') and request.url.path not in ['/maintenance', '/admin/maintenance-off', '/admin/backup/restore', '/admin/backup/create', '/admin/backup/restore-auto', '/ws/progress', '/progress-status', '/data/filter', '/healthcheck', '/pages-count', '/data', '/photos', '/item', '/admin/logs', '/admin/admins-list', '/login', '/token']:
         return RedirectResponse(url="/maintenance", status_code=303)
+    response = await call_next(request)
+    return response
+
+@app.middleware("http")
+async def protected_routes_middleware(request: Request, call_next):
+    protected_paths = ["/admin", "/sierra-alpha"]
+    path = request.url.path
+    if path in protected_paths:
+        token = request.headers.get("Authorization")
+        if token and token.startswith("Bearer "):
+            token = token[7:]
+        else:
+            token = request.cookies.get("access_token")
+        if not token:
+            return RedirectResponse(url="/login", status_code=303)
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            role = payload.get("role")
+            if path == "/admin" and role not in ["admin", "super_admin"]:
+                return RedirectResponse(url="/login", status_code=303)
+            if path == "/sierra-alpha" and role not in ["admin", "super_admin"]:
+                return RedirectResponse(url="/login", status_code=303)
+        except JWTError:
+            return RedirectResponse(url="/login", status_code=303)
     response = await call_next(request)
     return response
 
@@ -467,10 +455,12 @@ def get_current_user_optional(token: str = Depends(oauth2_scheme)):
         return None
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        role: str = payload.get("role")
+        email = payload.get("sub")
+        role = payload.get("role")
         if email is None or role is None:
             return None
+        if role == "super_admin":
+            return {"username": "super_admin", "email": "super_admin", "role": "super_admin", "created_at": datetime.now().isoformat()}
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT username, email, role, created_at FROM admins WHERE email = ?", (email,))
@@ -494,11 +484,20 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     return user
 
 def get_current_admin(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
+    if current_user["role"] not in ["admin", "super_admin"]:
         print(f"[WARN] Access attempt to admin endpoint by user with role: {current_user['role']}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Admin access required"
+        )
+    return current_user
+
+def get_current_super_admin(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != "super_admin":
+        print(f"[WARN] Access attempt to super admin endpoint by user with role: {current_user['role']}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Super admin access required"
         )
     return current_user
 
@@ -507,7 +506,7 @@ async def websocket_progress(websocket: WebSocket):
     await websocket.accept()
     token = websocket.query_params.get("token")
     user = get_current_user_optional(token)
-    if user is None or user["role"] != "admin":
+    if user is None or user["role"] not in ["admin", "super_admin"]:
         await websocket.close(code=1008, reason="Unauthorized")
         return
     active_connections.append(websocket)
@@ -702,7 +701,7 @@ async def filter_data(request: FilterRequest):
 
 @app.get("/healthcheck")
 async def healthcheck():
-    status = "healthy"
+    status_val = "healthy"
     components = {}
     try:
         conn = sqlite3.connect(DB_PATH)
@@ -712,7 +711,7 @@ async def healthcheck():
         conn.close()
         components["database"] = {"status": "up", "response_time_ms": 5}
     except Exception as e:
-        status = "unhealthy"
+        status_val = "unhealthy"
         components["database"] = {"status": "down", "error": str(e)}
     try:
         if os.path.exists(UPLOAD_DIR):
@@ -725,70 +724,51 @@ async def healthcheck():
         components["storage"] = {"status": "down", "error": str(e)}
     components["maintenance_mode"] = config.get('MAINTENANCE_MODE')
     print("[INFO] Server health check")
-    response_data = {"status": status, "timestamp": datetime.now(timezone.utc).isoformat(), "version": "3.0.0", "components": components}
+    response_data = {"status": status_val, "timestamp": datetime.now(timezone.utc).isoformat(), "version": "3.0.0", "components": components}
     return response_data
 
 @app.get("/progress-status")
-async def get_progress_status(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] != "admin":
-        print(f"[WARN] Access attempt to progress-status by user with role: {current_user['role']}")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Admin access required")
+async def get_progress_status(current_user: dict = Depends(get_current_admin)):
     return progress_status
 
-@app.post("/admin/register")
-async def register_admin(admin_data: AdminCreate):
-    print(f"[INFO] Admin registration attempt with username: {admin_data.username}, email: {admin_data.email}")
-    if not verify_static_admin_code(admin_data.admin_code):
-        print(f"[ERROR] Invalid admin code during admin registration")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin code")
-    salt = secrets.token_hex(16)
-    hash_obj = hashlib.pbkdf2_hmac('sha256', admin_data.password.encode(), salt.encode(), 100000)
-    hashed_pw = f"{salt}${hash_obj.hex()}"
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    email_value = admin_data.email if admin_data.email is not None else ""
-    cursor.execute("SELECT email, username FROM admins WHERE email = ? OR username = ?", (email_value, admin_data.username))
-    if cursor.fetchone():
-        conn.close()
-        print(f"[ERROR] Admin with this email or username already exists")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email or username already registered")
-    cursor.execute("""
-        INSERT INTO admins (username, email, password_hash, role, created_at)
-        VALUES (?, ?, ?, ?, ?)
-    """, (admin_data.username, email_value, hashed_pw, 'admin', datetime.now().isoformat()))
-    conn.commit()
-    conn.close()
-    print(f"[INFO] Admin successfully registered: {admin_data.username}")
-    response_data = {"message": "Admin registered successfully", "username": admin_data.username, "email": email_value}
-    return response_data
-
-@app.post("/admin/delete")
-async def delete_admin(
-    email: str = Form(...),
-    admin_code: str = Form(...)
-):
-    print(f"[INFO] Attempt to delete admin account: {email}")
-    if not verify_static_admin_code(admin_code):
-        print(f"[ERROR] Invalid admin code during account deletion")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin code")
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT id FROM admins WHERE email = ?", (email,))
-    admin_id = cursor.fetchone()
-    if not admin_id:
-        conn.close()
-        print(f"[ERROR] Admin with email {email} not found")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Admin not found")
-    cursor.execute("DELETE FROM admins WHERE email = ?", (email,))
-    conn.commit()
-    conn.close()
-    print(f"[INFO] Admin account {email} successfully deleted")
-    response_data = {"message": f"Admin account {email} deleted successfully"}
-    return response_data
+@app.get("/login")
+async def login_page():
+    print("[INFO] Login page request")
+    login_html_path = os.path.join(os.path.dirname(__file__), "templates", "login.html")
+    if os.path.exists(login_html_path):
+        with open(login_html_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            return HTMLResponse(content=content)
+    return HTMLResponse(content="<h1>Login</h1><p>File templates/login.html not found</p>")
 
 @app.post("/token")
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(response: Response, form_data: OAuth2PasswordRequestForm = Depends()):
     print(f"[INFO] Login attempt with username: {form_data.username}")
+    if form_data.username == "none":
+        provided_hash = hashlib.sha256(form_data.password.encode()).hexdigest()
+        static_code_hash = hashlib.sha256(ADMIN_STATIC_CODE.encode()).hexdigest()
+        if not hmac.compare_digest(provided_hash, static_code_hash):
+            print(f"[ERROR] Invalid super admin code")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid admin code",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        print(f"[INFO] Super admin authenticated successfully")
+        super_token = jwt.encode(
+            {"sub": "super_admin", "role": "super_admin", "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)},
+            SECRET_KEY,
+            algorithm=ALGORITHM
+        )
+        response.set_cookie(
+            key="access_token",
+            value=super_token,
+            httponly=True,
+            secure=False,
+            samesite="lax",
+            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        )
+        return {"status": "success", "access_token": super_token, "token_type": "bearer", "redirect_url": "/sierra-alpha"}
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT username, email, password_hash, role FROM admins WHERE email = ? OR username = ?", (form_data.username, form_data.username))
@@ -823,7 +803,72 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         SECRET_KEY,
         algorithm=ALGORITHM
     )
-    response_data = {"access_token": access_token, "token_type": "bearer"}
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False, 
+        samesite="lax",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
+    return {"access_token": access_token, "token_type": "bearer", "redirect_url": "/admin"}
+
+@app.get("/admin/verify-super")
+async def verify_super_admin(request: Request):
+    token = request.headers.get("Authorization")
+    if token and token.startswith("Bearer "):
+        token = token[7:]
+    if not token:
+        raise HTTPException(status_code=401, detail="No token provided")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        role = payload.get("role")
+        if role not in ["admin", "super_admin"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        return {"valid": True, "role": role}
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+@app.post("/admin/register")
+async def register_admin(admin_data: AdminCreate, current_admin: dict = Depends(get_current_super_admin)):
+    print(f"[INFO] Admin registration attempt with username: {admin_data.username}, email: {admin_data.email}")
+    salt = secrets.token_hex(16)
+    hash_obj = hashlib.pbkdf2_hmac('sha256', admin_data.password.encode(), salt.encode(), 100000)
+    hashed_pw = f"{salt}${hash_obj.hex()}"
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    email_value = admin_data.email if admin_data.email is not None else ""
+    cursor.execute("SELECT email, username FROM admins WHERE email = ? OR username = ?", (email_value, admin_data.username))
+    if cursor.fetchone():
+        conn.close()
+        print(f"[ERROR] Admin with this email or username already exists")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email or username already registered")
+    cursor.execute("""
+        INSERT INTO admins (username, email, password_hash, role, created_at)
+        VALUES (?, ?, ?, ?, ?)
+    """, (admin_data.username, email_value, hashed_pw, 'admin', datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+    print(f"[INFO] Admin successfully registered: {admin_data.username}")
+    response_data = {"message": "Admin registered successfully", "username": admin_data.username, "email": email_value}
+    return response_data
+
+@app.post("/admin/delete")
+async def delete_admin(email: str = Form(...), current_admin: dict = Depends(get_current_super_admin)):
+    print(f"[INFO] Attempt to delete admin account: {email}")
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM admins WHERE email = ?", (email,))
+    admin_id = cursor.fetchone()
+    if not admin_id:
+        conn.close()
+        print(f"[ERROR] Admin with email {email} not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Admin not found")
+    cursor.execute("DELETE FROM admins WHERE email = ?", (email,))
+    conn.commit()
+    conn.close()
+    print(f"[INFO] Admin account {email} successfully deleted")
+    response_data = {"message": f"Admin account {email} deleted successfully"}
     return response_data
 
 @app.get("/admin/me", response_model=UserResponse)
@@ -851,11 +896,8 @@ async def maintenance_off(current_admin: dict = Depends(get_current_admin)):
     return response_data
 
 @app.post("/admin/backup/create")
-async def create_backup_endpoint(admin_code: str = Form(...)):
+async def create_backup_endpoint(current_admin: dict = Depends(get_current_super_admin)):
     print(f"[INFO] Attempt to create manual backup")
-    if not verify_static_admin_code(admin_code):
-        print(f"[ERROR] Invalid admin code during manual backup creation")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin code")
     async with restore_lock:
         config.set_maintenance(True)
         try:
@@ -884,14 +926,8 @@ async def create_backup_endpoint(admin_code: str = Form(...)):
             config.set_maintenance(False)
 
 @app.post("/admin/backup/restore")
-async def restore_backup_endpoint(
-    admin_code: str = Form(...),
-    target_tables: str = Form(default="all")
-):
+async def restore_backup_endpoint(target_tables: str = Form(default="all"), current_admin: dict = Depends(get_current_super_admin)):
     print(f"[INFO] Attempt to restore from manual backup")
-    if not verify_static_admin_code(admin_code):
-        print(f"[ERROR] Invalid admin code during manual backup restore")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin code")
     if target_tables == "all":
         tables_to_restore = ["tbl_1_pub", "tbl_2_unpub", "tbl_3_buffer"]
     else:
@@ -929,14 +965,8 @@ async def restore_backup_endpoint(
             config.set_maintenance(False)
 
 @app.post("/admin/backup/restore-auto")
-async def restore_auto_backup_endpoint(
-    admin_code: str = Form(...),
-    target_tables: str = Form(default="all")
-):
+async def restore_auto_backup_endpoint(target_tables: str = Form(default="all"), current_admin: dict = Depends(get_current_super_admin)):
     print(f"[INFO] Attempt to restore from auto backup")
-    if not verify_static_admin_code(admin_code):
-        print(f"[ERROR] Invalid admin code during auto backup restore")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin code")
     if target_tables == "all":
         tables_to_restore = ["tbl_1_pub", "tbl_2_unpub", "tbl_3_buffer"]
     else:
@@ -984,7 +1014,7 @@ async def sierra_alpha_page():
     return HTMLResponse(content="<h1>Sierra Alpha</h1><p>File templates/sierra-alpha.html not found</p>")
 
 @app.post("/admin/verify-password")
-async def verify_admin_password(admin_code: str = Form(...), request: Request = None):
+async def verify_admin_password(request: Request, current_admin: dict = Depends(get_current_super_admin)):
     client_ip = request.client.host if request else "unknown"
     forwarded = request.headers.get("X-Forwarded-For") if request else None
     if forwarded:
@@ -992,20 +1022,13 @@ async def verify_admin_password(admin_code: str = Form(...), request: Request = 
     print(f"[INFO] IP: {client_ip}")
     print(f"[INFO] Endpoint: POST /admin/verify-password")
     print(f"[REQW] Password verification request")
-    print(f"[INFO] Received admin_code: {'*' * len(admin_code) if admin_code else 'empty'}")
-    if not verify_static_admin_code(admin_code):
-        print(f"[ERROR] Invalid admin code during password verification")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin code")
     print(f"[INFO] Admin password successfully verified")
     response_data = {"message": "Admin password verified successfully", "verified": True}
     return response_data
 
 @app.get("/admin/admins-list")
-async def get_admins_list(admin_code: str):
+async def get_admins_list(current_admin: dict = Depends(get_current_super_admin)):
     print(f"[INFO] Attempt to get admins list")
-    if not verify_static_admin_code(admin_code):
-        print(f"[ERROR] Invalid admin code during admins list retrieval")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin code")
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -1017,18 +1040,8 @@ async def get_admins_list(admin_code: str):
     return JSONResponse(content={"admins": result})
 
 @app.post("/admin/logs")
-async def get_admin_logs(request: Request):
+async def get_admin_logs(request: Request, current_admin: dict = Depends(get_current_super_admin)):
     print(f"[INFO] Attempt to get admin logs")
-    try:
-        body = await request.json()
-        admin_code = body.get("admin_code")
-    except:
-        raise HTTPException(status_code=400, detail="Invalid JSON body, expected {'admin_code': '...'}")
-    if not admin_code:
-        raise HTTPException(status_code=400, detail="admin_code is required")
-    if not verify_static_admin_code(admin_code):
-        print(f"[ERROR] Invalid admin code during logs retrieval")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin code")
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -1081,7 +1094,7 @@ async def add_unpublished_item(item: AddUnpublishedItemRequest, current_admin: d
         conn.commit()
         print(f"[INFO] Item successfully added to tbl_2_unpub with ID={new_id}")
         response_data = {"message": "Item added successfully", "id": new_id}
-        log_admin_action(current_admin, "/admin/table/unpublished/add", str(item.dict()), str(response_data))
+        log_admin_action(current_admin, "/admin/table/unpublished/add", str(item.model_dump()), str(response_data))
         return response_data
     except Exception as e:
         conn.rollback()
@@ -1137,7 +1150,7 @@ async def update_cell(update_data: CellUpdateRequest, current_admin: dict = Depe
     conn.close()
     print(f"[INFO] Admin {current_admin['username']} updated cell: ID={update_data.record_id}, {update_data.column_name}={update_data.new_value}")
     response_data = {"message": "Cell updated successfully", "record_id": update_data.record_id, "column": update_data.column_name, "new_value": update_data.new_value}
-    log_admin_action(current_admin, "/admin/table/update-cell", str(update_data.dict()), str(response_data))
+    log_admin_action(current_admin, "/admin/table/update-cell", str(update_data.model_dump()), str(response_data))
     return response_data
 
 @app.post("/admin/table/update-photo")
@@ -1231,7 +1244,7 @@ async def delete_row(delete_data: RowDeleteRequest, request: Request, current_ad
         "deleted_id": delete_data.record_id,
         "source_table": found_table
     }
-    log_admin_action(current_admin, "/admin/table/delete-row", str(delete_data.dict()), str(response_data))
+    log_admin_action(current_admin, "/admin/table/delete-row", str(delete_data.model_dump()), str(response_data))
     return response_data
 
 @app.post("/admin/move-row")
@@ -1284,7 +1297,7 @@ async def move_row(request: MoveRowRequest, req: Request, current_admin: dict = 
     print(f"[INFO] Response body: {{\"message\":\"Row moved successfully\"}}")
     print(f"[INFO] Admin {current_admin['username']} moved row id={request.id} from {source_table} to {target_table}")
     response_data = {"message": "Row moved successfully"}
-    log_admin_action(current_admin, "/admin/move-row", str(request.dict()), str(response_data))
+    log_admin_action(current_admin, "/admin/move-row", str(request.model_dump()), str(response_data))
     return response_data
 
 @app.get("/pages-count")
@@ -1365,7 +1378,7 @@ async def start_negotiation(req: StartNegotiationRequest, current_admin: dict = 
     conn.close()
     print(f"[INFO] Admin {current_admin['username']} started negotiation: record_id={req.record_id}, sold_qty={req.sold_qty}")
     response_data = {"message": "Negotiation started"}
-    log_admin_action(current_admin, "/admin/start-negotiation", str(req.dict()), str(response_data))
+    log_admin_action(current_admin, "/admin/start-negotiation", str(req.model_dump()), str(response_data))
     return response_data
 
 @app.post("/admin/end-negotiation")
@@ -1388,7 +1401,7 @@ async def end_negotiation(req: EndNegotiationRequest, current_admin: dict = Depe
     conn.close()
     print(f"[INFO] Admin {current_admin['username']} completed negotiation for record_id={req.record_id}")
     response_data = {"message": "Negotiation completed"}
-    log_admin_action(current_admin, "/admin/end-negotiation", str(req.dict()), str(response_data))
+    log_admin_action(current_admin, "/admin/end-negotiation", str(req.model_dump()), str(response_data))
     return response_data
 
 @app.post("/admin/cancel-negotiation")
@@ -1416,7 +1429,7 @@ async def cancel_negotiation(req: EndNegotiationRequest, current_admin: dict = D
         raise HTTPException(status_code=500, detail=str(e))
     conn.close()
     response_data = {"message": "Negotiation cancelled", "record_id": req.record_id}
-    log_admin_action(current_admin, "/admin/cancel-negotiation", str(req.dict()), str(response_data))
+    log_admin_action(current_admin, "/admin/cancel-negotiation", str(req.model_dump()), str(response_data))
     return response_data
 
 @app.post("/admin/reset-sequence/buffer_sales")
@@ -1488,74 +1501,89 @@ async def upload_file(file: UploadFile = File(...), current_admin: dict = Depend
         conn.commit()
         conn.close()
         print("[INFO] Backup of all main tables completed")
-        if ext == '.xlsx':
-            progress_status["progress"] = 0
-            progress_status["message"] = "Reading Excel file"
-            progress_status["current_operation"] = "read_excel"
-            df = pd.read_excel(file_path)
-            required_columns = ['Code', 'QTY', 'NAME', 'Brand', 'Model', 'PLACE', 'Price', 'Conditions', 'Truck models', 'Publishing date', 'Status']
-            for col in required_columns:
-                if col not in df.columns:
-                    df[col] = None
-            df = df[required_columns]
-            progress_status["progress"] = 20
-            progress_status["message"] = "Converting data types"
-            progress_status["current_operation"] = "convert_types"
-            df['QTY'] = pd.to_numeric(df['QTY'], errors='coerce')
-            df['QTY'] = df['QTY'].apply(lambda x: 1 if pd.isna(x) else int(x))
-            df['Price'] = pd.to_numeric(df['Price'], errors='coerce').fillna(0).astype(int)
-            for col in required_columns:
-                if col not in ['QTY', 'Price']:
-                    df[col] = df[col].astype(str)
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM tbl_1_pub")
-            cursor.execute("DELETE FROM tbl_2_unpub")
-            cursor.execute("DELETE FROM tbl_3_buffer")
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        try:
+            cursor.execute("BEGIN TRANSACTION")
+            if ext == '.xlsx':
+                progress_status["progress"] = 0
+                progress_status["message"] = "Reading Excel file"
+                progress_status["current_operation"] = "read_excel"
+                df = pd.read_excel(file_path)
+                required_columns = ['Code', 'QTY', 'NAME', 'Brand', 'Model', 'PLACE', 'Price', 'Conditions', 'Truck models', 'Publishing date', 'Status']
+                for col in required_columns:
+                    if col not in df.columns:
+                        df[col] = None
+                df = df[required_columns]
+                progress_status["progress"] = 20
+                progress_status["message"] = "Converting data types"
+                progress_status["current_operation"] = "convert_types"
+                df['QTY'] = pd.to_numeric(df['QTY'], errors='coerce')
+                df['QTY'] = df['QTY'].apply(lambda x: 1 if pd.isna(x) else int(x))
+                df['Price'] = pd.to_numeric(df['Price'], errors='coerce').fillna(0).astype(int)
+                for col in required_columns:
+                    if col not in ['QTY', 'Price']:
+                        df[col] = df[col].astype(str)
+                cursor.execute("DELETE FROM tbl_1_pub")
+                cursor.execute("DELETE FROM tbl_2_unpub")
+                cursor.execute("DELETE FROM tbl_3_buffer")
+                existing_ids = get_all_existing_ids(conn)
+                published_rows = []
+                unpublished_rows = []
+                for _, row in df.iterrows():
+                    status_val = row['Status']
+                    row_data = (row['Code'], row['QTY'], row['NAME'], row['Brand'], row['Model'], row['PLACE'], row['Price'], row['Conditions'], row['Truck models'], row['Publishing date'])
+                    is_empty = pd.isna(status_val) or str(status_val).strip().lower() in ['nan', 'none', '', 'null']
+                    if not is_empty and str(status_val).strip() == "Published":
+                        published_rows.append(row_data)
+                    else:
+                        unpublished_rows.append(row_data)
+                if published_rows:
+                    new_ids = []
+                    candidate = 1
+                    while len(new_ids) < len(published_rows):
+                        if candidate not in existing_ids:
+                            new_ids.append(candidate)
+                        candidate += 1
+                    published_tuples = [(new_ids[i],) + published_rows[i] for i in range(len(published_rows))]
+                    cursor.executemany("INSERT INTO tbl_1_pub (id, Code, QTY, NAME, Brand, Model, PLACE, Price, Conditions, Truck_models, Publishing_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", published_tuples)
+                    existing_ids.update(new_ids)
+                if unpublished_rows:
+                    new_ids = []
+                    candidate = 1
+                    while len(new_ids) < len(unpublished_rows):
+                        if candidate not in existing_ids:
+                            new_ids.append(candidate)
+                        candidate += 1
+                    unpublished_tuples = [(new_ids[i],) + unpublished_rows[i] for i in range(len(unpublished_rows))]
+                    cursor.executemany("INSERT INTO tbl_2_unpub (id, Code, QTY, NAME, Brand, Model, PLACE, Price, Conditions, Truck_models, Publishing_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", unpublished_tuples)
+            elif ext == '.db':
+                progress_status["progress"] = 50
+                progress_status["message"] = "Copying data from .db file"
+                progress_status["current_operation"] = "copy_from_db"
+                conn_src = sqlite3.connect(file_path)
+                cursor_src = conn_src.cursor()
+                cursor.execute("DELETE FROM tbl_1_pub")
+                cursor.execute("DELETE FROM tbl_2_unpub")
+                cursor.execute("DELETE FROM tbl_3_buffer")
+                cursor_src.execute("SELECT Code, QTY, NAME, Brand, Model, PLACE, Price, Conditions, Truck_models, Publishing_date, Description, Photos FROM tbl_1_pub")
+                rows = cursor_src.fetchall()
+                existing_ids = get_all_existing_ids(conn)
+                new_ids = []
+                candidate = 1
+                while len(new_ids) < len(rows):
+                    if candidate not in existing_ids:
+                        new_ids.append(candidate)
+                    candidate += 1
+                db_inserts = [(new_ids[i],) + rows[i] for i in range(len(rows))]
+                cursor.executemany("INSERT INTO tbl_1_pub (id, Code, QTY, NAME, Brand, Model, PLACE, Price, Conditions, Truck_models, Publishing_date, Description, Photos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", db_inserts)
+                conn_src.close()
             conn.commit()
-            existing_ids = get_all_existing_ids(conn)
-            published_rows = []
-            unpublished_rows = []
-            for _, row in df.iterrows():
-                status_val = row['Status']
-                row_data = (row['Code'], row['QTY'], row['NAME'], row['Brand'], row['Model'], row['PLACE'], row['Price'], row['Conditions'], row['Truck models'], row['Publishing date'])
-                if status_val == "Published":
-                    published_rows.append(row_data)
-                else:
-                    unpublished_rows.append(row_data)
-            if published_rows:
-                published_ids = get_next_id_batch(existing_ids, len(published_rows))
-                published_tuples = [(published_ids[i],) + published_rows[i] for i in range(len(published_rows))]
-                cursor.executemany("INSERT INTO tbl_1_pub (id, Code, QTY, NAME, Brand, Model, PLACE, Price, Conditions, Truck_models, Publishing_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", published_tuples)
-                existing_ids.update(published_ids)
-            if unpublished_rows:
-                unpublished_ids = get_next_id_batch(existing_ids, len(unpublished_rows))
-                unpublished_tuples = [(unpublished_ids[i],) + unpublished_rows[i] for i in range(len(unpublished_rows))]
-                cursor.executemany("INSERT INTO tbl_2_unpub (id, Code, QTY, NAME, Brand, Model, PLACE, Price, Conditions, Truck_models, Publishing_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", unpublished_tuples)
-            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
             conn.close()
-            print(f"[INFO] Data from file {file_path} converted and loaded into main tables")
-        elif ext == '.db':
-            progress_status["progress"] = 50
-            progress_status["message"] = "Copying data from .db file"
-            progress_status["current_operation"] = "copy_from_db"
-            conn_src = sqlite3.connect(file_path)
-            conn_dst = sqlite3.connect(DB_PATH)
-            cursor_dst = conn_dst.cursor()
-            cursor_dst.execute("DELETE FROM tbl_1_pub")
-            cursor_dst.execute("DELETE FROM tbl_2_unpub")
-            cursor_dst.execute("DELETE FROM tbl_3_buffer")
-            cursor_src = conn_src.cursor()
-            cursor_src.execute("SELECT Code, QTY, NAME, Brand, Model, PLACE, Price, Conditions, Truck_models, Publishing_date, Description, Photos FROM tbl_1_pub")
-            rows = cursor_src.fetchall()
-            existing_ids = get_all_existing_ids(conn_dst)
-            new_ids = get_next_id_batch(existing_ids, len(rows))
-            db_inserts = [(new_ids[i],) + rows[i] for i in range(len(rows))]
-            cursor_dst.executemany("INSERT INTO tbl_1_pub (id, Code, QTY, NAME, Brand, Model, PLACE, Price, Conditions, Truck_models, Publishing_date, Description, Photos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", db_inserts)
-            conn_dst.commit()
-            conn_src.close()
-            conn_dst.close()
-            print(f"[INFO] Data from file {file_path} copied into main tables")
         progress_status["status"] = "completed"
         progress_status["progress"] = 100
         progress_status["message"] = "File processing completed"
@@ -1600,6 +1628,38 @@ async def get_site_name():
     with open(name_path, "r", encoding="utf-8") as f:
         site_name = f.read().strip()
     return JSONResponse(content={"site_name": site_name})
+
+@app.get("/contacts")
+async def get_contacts():
+    contacts_path = os.path.join(os.path.dirname(__file__), "static", "contacts.txt")
+    if not os.path.exists(contacts_path):
+        return JSONResponse(content={"phone": "", "name": ""})
+    try:
+        with open(contacts_path, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+            if ":" in content:
+                phone, name = content.split(":", 1)
+                return JSONResponse(content={"phone": phone.strip(), "name": name.strip()})
+            return JSONResponse(content={"phone": content, "name": ""})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error reading contacts")
+
+@app.post("/admin/contacts")
+async def update_contacts(contact: ContactUpdate, current_admin: dict = Depends(get_current_super_admin)):
+    print(f"[INFO] Attempt to update contacts by admin: {current_admin['username']}")
+    static_dir = os.path.join(os.path.dirname(__file__), "static")
+    os.makedirs(static_dir, exist_ok=True)
+    contacts_path = os.path.join(static_dir, "contacts.txt")
+    try:
+        with open(contacts_path, "w", encoding="utf-8") as f:
+            f.write(f"{contact.phone}:{contact.name}")
+        print(f"[INFO] Contacts updated successfully")
+        response_data = {"message": "Контактные данные успешно обновлены"}
+        log_admin_action(current_admin, "/admin/contacts", f"{contact.phone}:{contact.name}", str(response_data))
+        return response_data
+    except Exception as e:
+        print(f"[ERROR] Failed to update contacts: {e}")
+        raise HTTPException(status_code=500, detail="Error writing contacts")
 
 if __name__ == "__main__":
     import uvicorn
